@@ -31,11 +31,14 @@ function LoginForm() {
             variant="h4"
             sx={{
               background: "linear-gradient(45deg, #00A8FF 30%, #DEE3E6 90%)",
+              display: "inline-block",
+              color: "transparent",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               fontWeight: 700,
               letterSpacing: "0.1rem",
               textTransform: "uppercase",
+              width: "fit-content",
             }}
           >
             Log In
