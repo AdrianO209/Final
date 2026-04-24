@@ -1,4 +1,5 @@
 import LoginForm from "./LoginForm.jsx";
+import Header from "./Header.jsx";
 import { Box } from "@mui/material";
 
 function LoginPage() {
@@ -6,14 +7,24 @@ function LoginPage() {
     <Box
       sx={{
         display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        width: "100vw",
+        flexDirection: "column",
         height: "100vh",
-        backgroundColor: "background.default",
+        width: "100vw",
+        overflow: "hidden",
       }}
     >
-      <LoginForm />
+      <Header />
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "background.default",
+        }}
+      >
+        <LoginForm />
+      </Box>
     </Box>
   );
 }
