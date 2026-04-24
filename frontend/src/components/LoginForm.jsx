@@ -14,12 +14,11 @@ function LoginForm() {
   const [usernameAttempt, setUsernameAttempt] = useState("");
   const [passwordAttempt, setPasswordAttempt] = useState("");
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL;
-  console.log("DEBUG: API URL is currently:", API_BASE_URL);
+  const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
 
   const fetchLogin = async () => {
     console.log("Button was clicked! Function is running.");
-    const response = await fetch("${API_BASE_URL}/authentication", {
+    const response = await fetch(`${API_BASE_URL}/authentication`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
