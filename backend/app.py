@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True)
 
 # Admin
 app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
