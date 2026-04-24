@@ -14,10 +14,10 @@ function LoginForm() {
   const [usernameAttempt, setUsernameAttempt] = useState("");
   const [passwordAttempt, setPasswordAttempt] = useState("");
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   const fetchLogin = async () => {
-    const response = await fetch ("${API_BASE_URL}/authentication"), {
+    const response = await fetch("${API_BASE_URL}/authentication", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -27,16 +27,14 @@ function LoginForm() {
         username: usernameAttempt,
         password: passwordAttempt,
       }),
-    };
+    });
 
     const result = await response.json();
 
     if (response.ok) {
       alert("it worked");
     }
-
-
-  }
+  };
 
   return (
     <Grow in={true} timeout={1000}>
