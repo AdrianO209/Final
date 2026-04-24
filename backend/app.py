@@ -11,7 +11,9 @@ app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
 admin = Admin(app, name="Chess", theme=Bootstrap4Theme(swatch="cerulean"))
 
 # Database
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = (
+    "postgresql://postgres:guHjAUhcBQHYIwGSYxmIfhEffYhSfkpv@shuttle.proxy.rlwy.net:20291/railway"
+)
 db = SQLAlchemy(app)
 
 
