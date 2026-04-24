@@ -73,19 +73,21 @@ def login():
 @app.route("/register", methods=["POST"])
 def register():
     data = request.json
-    existingUser = UserCredentials.query.filter_by(
-        username=data.get("newUsername")
-    ).first()
+    username = data.get("username")  # Changed from 'newUsername'
+    password = data.get("password")
+
+    if not username or not password:
+        return jsonify({"error": "Username and password are required"}), 400
+
+    existingUser = UserCredentials.query.filter_by(username=username).first()
 
     if existingUser is None:
-        hashedPW = bcrypt.generate_password_hash(data.get("newPassword")).decode(
-            "utf-8"
-        )
+        hashedPW = bcrypt.generate_password_hash(password).decode("utf-8")
 
-        addUser = UserCredentials(username=data.get("newUsername", password=hashedPW))  # type: ignore
+        addUser = UserCredentials(username=username, password=hashedPW)  # type: ignore
         db.session.add(addUser)
         db.session.commit()
-        return jsonify({"message": "Success!"}), 200
+        return jsonify({"message": "Success!"}), 201
 
     return jsonify(({"error": "User already exist!"})), 400
 

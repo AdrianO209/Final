@@ -46,8 +46,8 @@ function LoginForm() {
       },
       credentials: "include",
       body: JSON.stringify({
-        newUsername: usernameInput,
-        newPassword: passwordInput,
+        username: usernameInput,
+        password: passwordInput,
       }),
     });
     const result = await response.json();
