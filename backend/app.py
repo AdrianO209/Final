@@ -88,20 +88,6 @@ def login():
     return jsonify({"error": "Invalid credentials"}), 401
 
 
-@app.route("/authentication", methods=["POST"])
-def authentication():
-    data = request.json
-    user = UserCredentials.query.filter_by(username=data.get("username")).first()
-
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
-
-    if not user.checkPassword(data.get("password")):
-        return jsonify({"error": "Incorrect password. Please try again!"}), 401
-
-    return jsonify({"message": "Success!"}), 200
-
-
 # Initialization SQL
 with app.app_context():
     db.create_all()

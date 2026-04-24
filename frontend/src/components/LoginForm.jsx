@@ -11,22 +11,21 @@ import {
 } from "@mui/material";
 
 function LoginForm() {
-  const [usernameAttempt, setUsernameAttempt] = useState("");
-  const [passwordAttempt, setPasswordAttempt] = useState("");
+  const [usernameInput, setUsernameInput] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
 
   const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
 
   const fetchLogin = async () => {
-    console.log("Button was clicked! Function is running.");
-    const response = await fetch(`${API_BASE_URL}/authentication`, {
+    const response = await fetch(`${API_BASE_URL}/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       credentials: "include",
       body: JSON.stringify({
-        username: usernameAttempt,
-        password: passwordAttempt,
+        username: usernameInput,
+        password: passwordInput,
       }),
     });
 
@@ -36,6 +35,27 @@ function LoginForm() {
       alert("it worked" + result.message);
     } else {
       alert("failed" + result.error);
+    }
+  };
+
+  const fetchRegister = async () => {
+    const response = await fetch(`${API_BASE_URL}/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        newUsername: usernameInput,
+        newPassword: passwordInput,
+      }),
+    });
+    const result = await response.json();
+
+    if (response.ok) {
+      console.log(result.message);
+    } else {
+      console.log(result.error);
     }
   };
 
@@ -81,16 +101,16 @@ function LoginForm() {
             label="Username"
             fullWidth
             size="medium"
-            value={usernameAttempt}
-            onChange={(e) => setUsernameAttempt(e.target.value)}
+            value={usernameInput}
+            onChange={(e) => setUsernameInput(e.target.value)}
           />
           <TextField
             label="Password"
             type="password"
             fullWidth
             size="medium"
-            value={passwordAttempt}
-            onChange={(e) => setPasswordAttempt(e.target.value)}
+            value={passwordInput}
+            onChange={(e) => setPasswordInput(e.target.value)}
           />
 
           <Button
@@ -118,6 +138,7 @@ function LoginForm() {
               transition: "transform 0.2s",
               "&:hover": { transform: "scale(1.02)" },
             }}
+            onClick={fetchRegister}
           >
             Register
           </Button>
