@@ -4,8 +4,11 @@ from flask_admin import Admin
 from flask_admin.theme import Bootstrap4Theme
 from flask_admin.contrib.sqla import ModelView
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
+
 # Admin
 app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
 
@@ -34,7 +37,7 @@ class UserCredentials(db.Model):
 admin.add_view(ModelView(UserCredentials, db.session))
 
 
-@app.route("/authentication", method=["POST"])
+@app.route("/authentication", methods=["POST"])
 def authentication():
     data = request.json
     user = UserCredentials.query.filter_by(username=data.get("username")).first()
@@ -42,7 +45,7 @@ def authentication():
     if user is None:
         return jsonify({"error": "User not found"}), 404
 
-    if user is user.checkPassword(data.get("password")):
+    if not user.checkPassword(data.get("password")):
         return jsonify({"error": "Incorrect password. Please try again!"}), 401
 
     return jsonify("success"), 200

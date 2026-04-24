@@ -11,6 +11,33 @@ import {
 } from "@mui/material";
 
 function LoginForm() {
+  const [usernameAttempt, setUsernameAttempt] = useState("");
+  const [passwordAttempt, setPassswordAttempt] = useState("");
+
+  const API_BASE_URL = import.meta.env.VITE_API_URL
+
+  const fetchLogin() = async () => {
+    const response = await fetch ("${API_BASE_URL}/authentication"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        username: usernameAttempt,
+        passwor: passwordAttempt,
+      }),
+    };
+
+    const result = await response.json();
+
+    if (response.ok) {
+      alert("it worked");
+    }
+
+
+  }
+
   return (
     <Grow in={true} timeout={1000}>
       <Paper
@@ -49,8 +76,21 @@ function LoginForm() {
         </Stack>
 
         <Stack spacing={3} sx={{ width: "100%", mt: 3 }}>
-          <TextField label="Username" fullWidth size="medium" />
-          <TextField label="Password" type="password" fullWidth size="medium" />
+          <TextField
+            label="Username"
+            fullWidth
+            size="medium"
+            value={username}
+            onChange={(e) => setUsernameAttempt(e.target.value)}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            fullWidth
+            size="medium"
+            value={password}
+            onChange={(e) => setPassswordAttempt(e.target.value)}
+          />
 
           <Button
             variant="contained"
