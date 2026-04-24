@@ -14,7 +14,8 @@ function LoginForm() {
   const [usernameAttempt, setUsernameAttempt] = useState("");
   const [passwordAttempt, setPasswordAttempt] = useState("");
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
+  console.log("DEBUG: API URL is currently:", API_BASE_URL);
 
   const fetchLogin = async () => {
     console.log("Button was clicked! Function is running.");
