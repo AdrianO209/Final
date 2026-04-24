@@ -78,7 +78,9 @@ def register():
     ).first()
 
     if existingUser is None:
-        hashedPW = bcrypt.generate_password_hash(data["newPassword"]).decode("utf-8")
+        hashedPW = bcrypt.generate_password_hash(data.get("newPassword")).decode(
+            "utf-8"
+        )
 
         addUser = UserCredentials(username=data.get("newUsername", password=hashedPW))  # type: ignore
         db.session.add(addUser)
