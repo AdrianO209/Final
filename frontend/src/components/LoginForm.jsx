@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -29,8 +29,6 @@ function LoginForm() {
         password: passwordAttempt,
       }),
     });
-
-    const result = await response.json();
 
     if (response.ok) {
       alert("it worked");
