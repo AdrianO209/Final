@@ -109,6 +109,18 @@ function LoginForm() {
           >
             Sign In
           </Button>
+
+          <Button
+            variant="text"
+            size="small"
+            sx={{
+              fontWeight: "bold",
+              transition: "transform 0.2s",
+              "&:hover": { transform: "scale(1.02)" },
+            }}
+          >
+            Register
+          </Button>
         </Stack>
       </Paper>
     </Grow>
