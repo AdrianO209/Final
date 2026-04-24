@@ -51,24 +51,6 @@ class UserCredentials(db.Model):
 admin.add_view(ModelView(UserCredentials, db.session))
 
 
-@app.route("/register", methods=["POST"])
-def register():
-    data = request.json
-    existingUser = UserCredentials.query.filter_by(
-        username=data.get("username")
-    ).first()
-
-    if existingUser is None:
-        hashedPW = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
-
-        addUser = UserCredentials(username=data.get("username", password=hashedPW))
-        db.session.add(addUser)
-        db.session.commit()
-        return jsonify({"message": "Success!"}), 200
-
-    return jsonify(({"error": "User already exist!"})), 400
-
-
 @app.route("/login", methods=["POST"])
 def login():
     data = request.json
@@ -86,6 +68,24 @@ def login():
         return response
 
     return jsonify({"error": "Invalid credentials"}), 401
+
+
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.json
+    existingUser = UserCredentials.query.filter_by(
+        username=data.get("newUsername")
+    ).first()
+
+    if existingUser is None:
+        hashedPW = bcrypt.generate_password_hash(data["newPassword"]).decode("utf-8")
+
+        addUser = UserCredentials(username=data.get("newUsername", password=hashedPW))  # type: ignore
+        db.session.add(addUser)
+        db.session.commit()
+        return jsonify({"message": "Success!"}), 200
+
+    return jsonify(({"error": "User already exist!"})), 400
 
 
 # Initialization SQL
