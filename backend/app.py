@@ -51,7 +51,7 @@ def authentication():
     if not user.checkPassword(data.get("password")):
         return jsonify({"error": "Incorrect password. Please try again!"}), 401
 
-    return jsonify("success"), 200
+    return jsonify({"message": "success"}), 200
 
 
 # Initialization SQL
