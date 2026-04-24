@@ -14,7 +14,7 @@ function LoginForm() {
   const [usernameAttempt, setUsernameAttempt] = useState("");
   const [passwordAttempt, setPasswordAttempt] = useState("");
 
-  const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   const fetchLogin = async () => {
     console.log("Button was clicked! Function is running.");
