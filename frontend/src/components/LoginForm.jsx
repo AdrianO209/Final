@@ -16,7 +16,7 @@ function LoginForm() {
 
   const API_BASE_URL = import.meta.env.VITE_API_URL
 
-  const fetchLogin() = async () => {
+  const fetchLogin = async () => {
     const response = await fetch ("${API_BASE_URL}/authentication"), {
       method: "POST",
       headers: {
