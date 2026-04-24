@@ -12,7 +12,7 @@ import {
 
 function LoginForm() {
   const [usernameAttempt, setUsernameAttempt] = useState("");
-  const [passwordAttempt, setPassswordAttempt] = useState("");
+  const [passwordAttempt, setPasswordAttempt] = useState("");
 
   const API_BASE_URL = import.meta.env.VITE_API_URL
 
@@ -25,7 +25,7 @@ function LoginForm() {
       credentials: "include",
       body: JSON.stringify({
         username: usernameAttempt,
-        passwor: passwordAttempt,
+        password: passwordAttempt,
       }),
     };
 
@@ -80,7 +80,7 @@ function LoginForm() {
             label="Username"
             fullWidth
             size="medium"
-            value={username}
+            value={usernameAttempt}
             onChange={(e) => setUsernameAttempt(e.target.value)}
           />
           <TextField
@@ -88,8 +88,8 @@ function LoginForm() {
             type="password"
             fullWidth
             size="medium"
-            value={password}
-            onChange={(e) => setPassswordAttempt(e.target.value)}
+            value={passwordAttempt}
+            onChange={(e) => setPasswordAttempt(e.target.value)}
           />
 
           <Button
