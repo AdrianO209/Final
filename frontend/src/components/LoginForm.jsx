@@ -102,6 +102,7 @@ function LoginForm() {
                 transform: "scale(1.02)",
               },
             }}
+            onClick={fetchLogin}
           >
             Sign In
           </Button>
