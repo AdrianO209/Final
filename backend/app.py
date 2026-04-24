@@ -5,8 +5,10 @@ from flask_admin.theme import Bootstrap4Theme
 from flask_admin.contrib.sqla import ModelView
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
+bcrypt = Bcrypt(app)
 
 cors_origin = os.environ.get("CORS_ORIGINS")
 CORS(app, resources={r"/*": {"origins": cors_origin}}, supports_credentials=True)
@@ -42,6 +44,24 @@ class UserCredentials(db.Model):
 admin.add_view(ModelView(UserCredentials, db.session))
 
 
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.json
+    existingUser = UserCredentials.query.filter_by(
+        username=data.get("username")
+    ).first()
+
+    if existingUser is None:
+        hashedPW = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
+
+        addUser = UserCredentials(username=data.get("username", password=hashedPW))
+        db.session.add(addUser)
+        db.session.commit()
+        return jsonify({"message": "Success!"}), 200
+
+    return jsonify(({"error": "User already exist!"})), 400
+
+
 @app.route("/authentication", methods=["POST"])
 def authentication():
     data = request.json
@@ -53,7 +73,7 @@ def authentication():
     if not user.checkPassword(data.get("password")):
         return jsonify({"error": "Incorrect password. Please try again!"}), 401
 
-    return jsonify({"message": "success"}), 200
+    return jsonify({"message": "Success!"}), 200
 
 
 # Initialization SQL
