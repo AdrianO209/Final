@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, jsonify, request
 from flask_admin import Admin
 from flask_admin.theme import Bootstrap4Theme
 from flask_admin.contrib.sqla import ModelView
@@ -21,14 +21,32 @@ app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 db = SQLAlchemy(app)
 
 
-class UserCreditials(db.Model):
+class UserCredentials(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String, unique=False, nullable=False)
 
+    def checkPassword(self, passwordAttempt):
+        return self.password == passwordAttempt
+
 
 # Admin Model Views
-admin.add_view(ModelView(UserCreditials, db.session))
+admin.add_view(ModelView(UserCredentials, db.session))
+
+
+@app.route("/authentication", method=["POST"])
+def authentication():
+    data = request.json
+    user = UserCredentials.query.filter_by(username=data.get("username")).first()
+
+    if user is None:
+        return jsonify({"error": "User not found"}), 404
+
+    if user is user.checkPassword(data.get("password")):
+        return jsonify({"error": "Incorrect password. Please try again!"}), 401
+
+    return jsonify("success"), 200
+
 
 # Initialization SQL
 with app.app_context():
