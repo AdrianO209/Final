@@ -34,6 +34,8 @@ function LoginForm() {
 
     if (response.ok) {
       alert("it worked");
+    } else {
+      alert("failed");
     }
   };
 
