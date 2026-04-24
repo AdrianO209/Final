@@ -19,7 +19,7 @@ function LoginForm() {
 
   const fetchLogin = async () => {
     console.log("Button was clicked! Function is running.");
-    const response = await fetch(`${API_BASE_URL}/authentication`, {
+    const response = await fetch("${API_BASE_URL}/authentication", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
