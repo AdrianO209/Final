@@ -1,13 +1,20 @@
 import os
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 from flask_admin import Admin
 from flask_admin.theme import Bootstrap4Theme
 from flask_admin.contrib.sqla import ModelView
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
+from flask_jwt_extended import JWTManager, create_access_token, set_access_cookies
 
 app = Flask(__name__)
+app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
+app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
+app.config["JWT_COOKIE_SECURE"] = True
+app.config["JWT_COOKIE_CSRF_PROTECT"] = True
+
+jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 
 cors_origin = os.environ.get("CORS_ORIGINS")
@@ -60,6 +67,25 @@ def register():
         return jsonify({"message": "Success!"}), 200
 
     return jsonify(({"error": "User already exist!"})), 400
+
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.json
+    usernameInput = data.get("username")
+    passwordInput = data.get("password")
+
+    user = UserCredentials.query.filter_by(username=usernameInput).first()
+
+    if user and bcrypt.check_password_hash(user.password, passwordInput):
+        access_token = create_access_token(identity=user.username)
+
+        response = make_response(jsonify({"message": "Login successful!"}), 200)
+        set_access_cookies(response, access_token)
+
+        return response
+
+    return jsonify({"error": "Invalid credentials"}), 401
 
 
 @app.route("/authentication", methods=["POST"])
