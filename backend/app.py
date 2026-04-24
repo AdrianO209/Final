@@ -15,7 +15,10 @@ app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
 admin = Admin(app, name="Chess", theme=Bootstrap4Theme(swatch="cerulean"))
 
 # Database
-database_url = os.environ.get("DATABASE_URL", "sqlite:///data.db")
+database_url = os.environ.get("DATABASE_URL")
+
+if database_url is None:
+    raise ValueError("CRITICAL ERROR: DATABASE_URL environment variable is missing!")
 
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
