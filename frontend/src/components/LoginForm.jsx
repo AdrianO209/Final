@@ -67,7 +67,7 @@ function LoginForm() {
       setHasError(false);
 
       setIsSuccess(true);
-      setTimeout(() => setIsSuccess(false), 3000);
+      setTimeout(() => setIsSuccess(false), 10000);
     }
   };
 
