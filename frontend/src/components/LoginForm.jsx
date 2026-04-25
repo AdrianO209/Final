@@ -13,7 +13,7 @@ import {
 function LoginForm() {
   const [usernameInput, setUsernameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
-  const [errorField, setErrorField] = useState("");
+  const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
@@ -34,11 +34,11 @@ function LoginForm() {
     const result = await response.json();
 
     if (!response.ok) {
-      setErrorField(result.field);
       setErrorMessage(result.error);
+      setHasError(true);
     } else {
-      setErrorField("");
       setErrorMessage("");
+      setHasError(false);
     }
   };
 
@@ -57,11 +57,11 @@ function LoginForm() {
     const result = await response.json();
 
     if (!response.ok) {
-      setErrorField(result.field);
       setErrorMessage(result.error);
+      setHasError(true);
     } else {
-      setErrorField("");
       setErrorMessage("");
+      setHasError(false);
     }
   };
 
@@ -110,12 +110,9 @@ function LoginForm() {
             value={usernameInput}
             onChange={(e) => {
               setUsernameInput(e.target.value);
-              if (errorField == "username") {
-                setErrorField("");
-              }
+              setHasError(false);
             }}
-            error={!!errorField}
-            helperText={errorField === "username" ? errorMessage : ""}
+            error={hasError}
           />
           <TextField
             label="Password"
@@ -125,12 +122,10 @@ function LoginForm() {
             value={passwordInput}
             onChange={(e) => {
               setPasswordInput(e.target.value);
-              if (errorField == "password") {
-                setErrorField("");
-              }
+              setHasError(false);
             }}
-            error={!!errorField}
-            helperText={errorField === "password" ? errorMessage : ""}
+            error={hasError}
+            helperText={hasError ? errorMessage : ""}
           />
 
           <Button

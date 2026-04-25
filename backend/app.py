@@ -67,13 +67,13 @@ def login():
 
         return response
 
-    if user is None:
+    """if user is None:
         return jsonify({"error": "Invalid credentials", "field": "username"}), 401
 
     if not bcrypt.check_password_hash(user.password, passwordInput):
         return jsonify({"error": "invalid credentials", "field": "password"}), 401
-
-    return jsonify({"error": "Unknown error!"}), 500
+    """
+    return jsonify({"error": "Invalid credentials!"}), 400
 
 
 @app.route("/register", methods=["POST"])
