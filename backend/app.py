@@ -82,11 +82,6 @@ def register():
     username = data.get("username")
     password = data.get("password")
 
-    findUser = UserCredentials.query.filer_by(username=username).first()  # type: ignore
-
-    if findUser is None:
-        return jsonify({"error": "Username already taken!", "field": "username"}), 400
-
     if not username or not password:
         return jsonify({"error": "Username and password are required"}), 400
 
@@ -94,8 +89,8 @@ def register():
 
     if existingUser is None:
         hashedPW = bcrypt.generate_password_hash(password).decode("utf-8")
-
         addUser = UserCredentials(username=username, password=hashedPW)  # type: ignore
+
         db.session.add(addUser)
         db.session.commit()
         return jsonify({"message": "Success!"}), 201
