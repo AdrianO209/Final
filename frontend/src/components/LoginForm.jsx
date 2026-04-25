@@ -56,10 +56,12 @@ function LoginForm() {
     });
     const result = await response.json();
 
-    if (response.ok) {
-      console.log(result.message);
+    if (!response.ok) {
+      setErrorField(result.field);
+      setErrorMessage(result.error);
     } else {
-      console.log(result.error);
+      setErrorField("");
+      setErrorMessage("");
     }
   };
 
