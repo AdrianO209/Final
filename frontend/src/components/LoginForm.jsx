@@ -8,6 +8,7 @@ import {
   Divider,
   Grow,
   Stack,
+  LoadingButton,
 } from "@mui/material";
 
 function LoginForm() {
@@ -16,10 +17,12 @@ function LoginForm() {
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
 
   const fetchLogin = async () => {
+    setIsLoading(true);
     const response = await fetch(`${API_BASE_URL}/login`, {
       method: "POST",
       headers: {
@@ -42,10 +45,12 @@ function LoginForm() {
       setPasswordInput("");
       setErrorMessage("");
       setHasError(false);
+      setIsLoading(false);
     }
   };
 
   const fetchRegister = async () => {
+    setIsLoading(true);
     const response = await fetch(`${API_BASE_URL}/register`, {
       method: "POST",
       headers: {
@@ -70,6 +75,7 @@ function LoginForm() {
 
       setIsSuccess(true);
       setTimeout(() => setIsSuccess(false), 10000);
+      setIsLoading(false);
     }
   };
 
@@ -136,7 +142,8 @@ function LoginForm() {
             helperText={hasError ? errorMessage : ""}
           />
 
-          <Button
+          <LoadingButton
+            loading={isLoading}
             variant="contained"
             fullWidth
             size="large"
@@ -151,7 +158,7 @@ function LoginForm() {
             onClick={fetchLogin}
           >
             Sign In
-          </Button>
+          </LoadingButton>
 
           <Button
             variant="text"
