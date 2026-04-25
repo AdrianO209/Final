@@ -38,6 +38,8 @@ function LoginForm() {
       setErrorMessage(result.error);
       setHasError(true);
     } else {
+      setUsernameInput("");
+      setPasswordInput("");
       setErrorMessage("");
       setHasError(false);
     }

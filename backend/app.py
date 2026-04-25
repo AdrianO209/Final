@@ -7,6 +7,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, set_access_cookies
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
@@ -73,7 +76,7 @@ def login():
     if not bcrypt.check_password_hash(user.password, passwordInput):
         return jsonify({"error": "invalid credentials", "field": "password"}), 401
     """
-    return jsonify({"error": "Invalid credentials!"}), 400
+    return jsonify({"error": "Invalid credentials! Or register a new account!/"}), 400
 
 
 @app.route("/register", methods=["POST"])
