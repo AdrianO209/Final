@@ -8,8 +8,8 @@ import {
   Divider,
   Grow,
   Stack,
-  LoadingButton,
 } from "@mui/material";
+import LoadingButton from "@mui/lab/LoadingButton";
 
 function LoginForm() {
   const [usernameInput, setUsernameInput] = useState("");
@@ -18,6 +18,7 @@ function LoginForm() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRegisterLoading, setIsRegisterLoading] = useState(false);
 
   const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
 
@@ -50,7 +51,7 @@ function LoginForm() {
   };
 
   const fetchRegister = async () => {
-    setIsLoading(true);
+    setIsRegisterLoading(true);
     const response = await fetch(`${API_BASE_URL}/register`, {
       method: "POST",
       headers: {
@@ -75,7 +76,7 @@ function LoginForm() {
 
       setIsSuccess(true);
       setTimeout(() => setIsSuccess(false), 10000);
-      setIsLoading(false);
+      setIsRegisterLoading(false);
     }
   };
 
@@ -160,7 +161,8 @@ function LoginForm() {
             Sign In
           </LoadingButton>
 
-          <Button
+          <LoadingButton
+            loading={isRegisterLoading}
             variant="text"
             size="small"
             sx={{
@@ -172,7 +174,7 @@ function LoginForm() {
             color={isSuccess ? "success" : "primary"}
           >
             Register
-          </Button>
+          </LoadingButton>
         </Stack>
       </Paper>
     </Grow>
