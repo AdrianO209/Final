@@ -110,11 +110,11 @@ function LoginForm() {
             value={usernameInput}
             onChange={(e) => {
               setUsernameInput(e.target.value);
-              if (errorField == "password") {
+              if (errorField == "username") {
                 setErrorField("");
               }
             }}
-            error={errorField === "password"}
+            error={errorField === "username"}
             helperText={errorField === "username" ? errorMessage : ""}
           />
           <TextField
@@ -125,12 +125,12 @@ function LoginForm() {
             value={passwordInput}
             onChange={(e) => {
               setPasswordInput(e.target.value);
-              if (errorField == "username") {
+              if (errorField == "password") {
                 setErrorField("");
               }
             }}
-            error={errorField === "username"}
-            helperText={errorField === "username" ? errorMessage : ""}
+            error={errorField === "password"}
+            helperText={errorField === "password" ? errorMessage : ""}
           />
 
           <Button
