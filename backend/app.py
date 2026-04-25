@@ -67,13 +67,19 @@ def login():
 
         return response
 
-    return jsonify({"error": "Invalid credentials"}), 401
+    if user is None:
+        return jsonify({"error": "Invalid credentials", "field": "username"}), 401
+
+    if not bcrypt.check_password_hash(user.password, passwordInput):
+        return jsonify({"error": "invalid credentials", "field": "password"}), 401
+
+    return jsonify({"error": "Unknown error!"}), 500
 
 
 @app.route("/register", methods=["POST"])
 def register():
     data = request.json
-    username = data.get("username")  # Changed from 'newUsername'
+    username = data.get("username")
     password = data.get("password")
 
     if not username or not password:

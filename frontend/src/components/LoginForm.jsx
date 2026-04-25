@@ -13,6 +13,8 @@ import {
 function LoginForm() {
   const [usernameInput, setUsernameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
+  const [errorField, setErrorField] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
 
@@ -31,10 +33,12 @@ function LoginForm() {
 
     const result = await response.json();
 
-    if (response.ok) {
-      alert("it worked" + result.message);
+    if (!response.ok) {
+      setErrorField(result.field);
+      setErrorMessage(result.error);
     } else {
-      alert("failed" + result.error);
+      setErrorField("");
+      setErrorMessage("");
     }
   };
 
@@ -102,7 +106,14 @@ function LoginForm() {
             fullWidth
             size="medium"
             value={usernameInput}
-            onChange={(e) => setUsernameInput(e.target.value)}
+            onChange={(e) => {
+              setUsernameInput(e.target.value);
+              if (errorField == "password") {
+                setErrorField("");
+              }
+            }}
+            error={errorField === "password"}
+            helperText={errorField === "username" ? errorMessage : ""}
           />
           <TextField
             label="Password"
@@ -110,7 +121,14 @@ function LoginForm() {
             fullWidth
             size="medium"
             value={passwordInput}
-            onChange={(e) => setPasswordInput(e.target.value)}
+            onChange={(e) => {
+              setPasswordInput(e.target.value);
+              if (errorField == "username") {
+                setErrorField("");
+              }
+            }}
+            error={errorField === "username"}
+            helperText={errorField === "username" ? errorMessage : ""}
           />
 
           <Button
