@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
+// import { useState, useEffect } from "react";
 import { Box, Grow, AppBar, Toolbar, Container } from "@mui/material";
 import { GiChessQueen } from "react-icons/gi";
 
 function Header() {
-  const [anchorNav, setAnchorNav] = useState(null);
+  // const [anchorNav, setAnchorNav] = useState(null);
 
-  const handleOpenNavMenu = (event) => setAnchorNav(event.currentTarget);
-  const handleClose = () => setAnchorNav(null);
+  // const handleOpenNavMenu = (event) => setAnchorNav(event.currentTarget);
+  // const handleClose = () => setAnchorNav(null);
 
   return (
     <Grow in={true} timeout={1000}>

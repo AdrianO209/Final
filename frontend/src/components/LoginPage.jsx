@@ -6,25 +6,14 @@ function LoginPage() {
   return (
     <Box
       sx={{
+        flexGrow: 1,
         display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        width: "100vw",
-        overflow: "hidden",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "background.default",
       }}
     >
-      <Header />
-      <Box
-        sx={{
-          flexGrow: 1,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "background.default",
-        }}
-      >
-        <LoginForm />
-      </Box>
+      <LoginForm />
     </Box>
   );
 }

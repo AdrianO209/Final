@@ -10,6 +10,7 @@ import {
   Stack,
 } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
+import { useNavigate } from "react-router-dom";
 
 function LoginForm() {
   const [usernameInput, setUsernameInput] = useState("");
@@ -20,6 +21,7 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRegisterLoading, setIsRegisterLoading] = useState(false);
 
+  const navigate = useNavigate();
   const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
 
   const fetchLogin = async () => {
