@@ -24,58 +24,65 @@ function LoginForm() {
 
   const fetchLogin = async () => {
     setIsLoading(true);
-    const response = await fetch(`${API_BASE_URL}/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        username: usernameInput,
-        password: passwordInput,
-      }),
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          username: usernameInput,
+          password: passwordInput,
+        }),
+      });
 
-    const result = await response.json();
+      const result = await response.json();
 
-    if (!response.ok) {
-      setErrorMessage(result.error);
-      setHasError(true);
-    } else {
-      setUsernameInput("");
-      setPasswordInput("");
-      setErrorMessage("");
-      setHasError(false);
+      if (!response.ok) {
+        setErrorMessage(result.error);
+        setHasError(true);
+      } else {
+        setUsernameInput("");
+        setPasswordInput("");
+        setErrorMessage("");
+        setHasError(false);
+      }
+    } finally {
       setIsLoading(false);
     }
   };
 
   const fetchRegister = async () => {
     setIsRegisterLoading(true);
-    const response = await fetch(`${API_BASE_URL}/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        username: usernameInput,
-        password: passwordInput,
-      }),
-    });
-    const result = await response.json();
+    try {
+      const response = await fetch(`${API_BASE_URL}/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          username: usernameInput,
+          password: passwordInput,
+        }),
+      });
+      const result = await response.json();
 
-    if (!response.ok) {
-      setErrorMessage(result.error);
-      setHasError(true);
-    } else {
-      setUsernameInput("");
-      setPasswordInput("");
-      setErrorMessage("");
-      setHasError(false);
+      if (!response.ok) {
+        setErrorMessage(result.error);
+        setHasError(true);
+      } else {
+        setUsernameInput("");
+        setPasswordInput("");
+        setErrorMessage("");
+        setHasError(false);
 
-      setIsSuccess(true);
-      setTimeout(() => setIsSuccess(false), 10000);
+        setIsSuccess(true);
+        setTimeout(() => setIsSuccess(false), 10000);
+        setIsRegisterLoading(false);
+      }
+    } finally {
       setIsRegisterLoading(false);
     }
   };
