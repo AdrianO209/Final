@@ -15,6 +15,7 @@ function LoginForm() {
   const [passwordInput, setPasswordInput] = useState("");
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
 
@@ -60,8 +61,13 @@ function LoginForm() {
       setErrorMessage(result.error);
       setHasError(true);
     } else {
+      setUsernameInput("");
+      setPasswordInput("");
       setErrorMessage("");
       setHasError(false);
+
+      setIsSuccess(true);
+      setTimeout(() => setIsSuccess(false), 3000);
     }
   };
 
@@ -154,6 +160,7 @@ function LoginForm() {
               "&:hover": { transform: "scale(1.02)" },
             }}
             onClick={fetchRegister}
+            color={isSuccess ? "success" : "primary"}
           >
             Register
           </Button>
