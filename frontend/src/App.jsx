@@ -20,6 +20,7 @@ function App() {
 
         <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
           <Routes>
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<LoginPage />} />
           </Routes>
         </Box>
