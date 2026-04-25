@@ -114,7 +114,7 @@ function LoginForm() {
                 setErrorField("");
               }
             }}
-            error={errorField === "username"}
+            error={!!errorField}
             helperText={errorField === "username" ? errorMessage : ""}
           />
           <TextField
@@ -129,7 +129,7 @@ function LoginForm() {
                 setErrorField("");
               }
             }}
-            error={errorField === "password"}
+            error={!!errorField}
             helperText={errorField === "password" ? errorMessage : ""}
           />
 
