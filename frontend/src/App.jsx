@@ -3,6 +3,7 @@ import { Box } from "@mui/material";
 import "./App.css";
 import LoginPage from "./components/LoginPage.jsx";
 import Header from "./components/Header.jsx";
+import ChessGame from "./components/ChessGame.jsx";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/game" element={<ChessGame />} />
           </Routes>
         </Box>
       </Box>
