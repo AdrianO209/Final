@@ -21,12 +21,18 @@ function Header({ isLoggedIn }) {
         <Container maxWidth="xl">
           <Toolbar sx={{ display: "flex", alignItems: "center" }}>
             <GiChessQueen size={50} />
+            {isLoggedIn ? (
+              <Box
+                sx={{
+                  ml: "auto",
+                  color: "primary.contrastText",
+                  bgcolor: "primary.main",
+                }}
+              >
+                <Button color="inherit">Sign Out</Button>
+              </Box>
+            ) : null}
           </Toolbar>
-          {isLoggedIn ? (
-            <Box>
-              <Button color="inherit">Sign Out</Button>
-            </Box>
-          ) : null}
         </Container>
       </AppBar>
     </Grow>
