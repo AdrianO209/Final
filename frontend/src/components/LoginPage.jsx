@@ -2,7 +2,7 @@ import LoginForm from "./LoginForm.jsx";
 import Header from "./Header.jsx";
 import { Box } from "@mui/material";
 
-function LoginPage() {
+function LoginPage({ setIsLoggedIn }) {
   return (
     <Box
       sx={{
@@ -13,7 +13,7 @@ function LoginPage() {
         backgroundColor: "background.default",
       }}
     >
-      <LoginForm />
+      <LoginForm setIsLoggedIn={setIsLoggedIn} />
     </Box>
   );
 }
