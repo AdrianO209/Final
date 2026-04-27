@@ -12,7 +12,7 @@ import {
 import LoadingButton from "@mui/lab/LoadingButton";
 import { useNavigate } from "react-router-dom";
 
-function LoginForm() {
+function LoginForm({ setIsLoggedIn }) {
   const [usernameInput, setUsernameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
   const [hasError, setHasError] = useState(false);
@@ -44,11 +44,14 @@ function LoginForm() {
       if (!response.ok) {
         setErrorMessage(result.error);
         setHasError(true);
+        setIsLoggedIn(false);
       } else {
         setUsernameInput("");
         setPasswordInput("");
         setErrorMessage("");
         setHasError(false);
+        setIsLoggedIn(true);
+        // navigate("/dashboard")
       }
     } finally {
       setIsLoading(false);
@@ -74,6 +77,7 @@ function LoginForm() {
       if (!response.ok) {
         setErrorMessage(result.error);
         setHasError(true);
+        setIsLoggedIn(false);
       } else {
         setUsernameInput("");
         setPasswordInput("");
@@ -83,6 +87,7 @@ function LoginForm() {
         setIsSuccess(true);
         setTimeout(() => setIsSuccess(false), 10000);
         setIsRegisterLoading(false);
+        setIsLoggedIn(true);
       }
     } finally {
       setIsRegisterLoading(false);

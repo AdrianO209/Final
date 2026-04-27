@@ -2,7 +2,7 @@
 import { Box, Grow, AppBar, Toolbar, Container } from "@mui/material";
 import { GiChessQueen } from "react-icons/gi";
 
-function Header() {
+function Header({ isLoggedIn }) {
   // const [anchorNav, setAnchorNav] = useState(null);
 
   // const handleOpenNavMenu = (event) => setAnchorNav(event.currentTarget);
@@ -22,6 +22,11 @@ function Header() {
           <Toolbar sx={{ display: "flex", alignItems: "center" }}>
             <GiChessQueen size={50} />
           </Toolbar>
+          {isLoggedIn ? (
+            <Box>
+              <Button color="inherit">Sign Out</Button>
+            </Box>
+          ) : null}
         </Container>
       </AppBar>
     </Grow>
