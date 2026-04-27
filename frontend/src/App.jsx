@@ -4,6 +4,7 @@ import { Box } from "@mui/material";
 import "./App.css";
 import LoginPage from "./components/LoginPage.jsx";
 import Header from "./components/Header.jsx";
+import Dashboard from "./components/Dashboard.jsx";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -28,6 +29,7 @@ function App() {
               path="/login"
               element={<LoginPage setIsLoggedIn={setIsLoggedIn} />}
             />
+            <Route path="/dashboard" element={<Dashboard />} />
           </Routes>
         </Box>
       </Box>

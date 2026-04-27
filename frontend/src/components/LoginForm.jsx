@@ -51,7 +51,7 @@ function LoginForm({ setIsLoggedIn }) {
         setErrorMessage("");
         setHasError(false);
         setIsLoggedIn(true);
-        // navigate("/dashboard")
+        navigate("/dashboard");
       }
     } finally {
       setIsLoading(false);
