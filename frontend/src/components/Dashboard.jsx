@@ -5,7 +5,7 @@ import { GiChessQueen } from "react-icons/gi";
 function Dashboard() {
   return (
     <Box>
-      <Typography variant="h1">Testing Sign in</Typography>
+      <Typography variant="h1">Testing Dashboard jump</Typography>
     </Box>
   );
 }
