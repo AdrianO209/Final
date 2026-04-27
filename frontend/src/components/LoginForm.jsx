@@ -51,6 +51,7 @@ function LoginForm({ setIsLoggedIn }) {
         setErrorMessage("");
         setHasError(false);
         setIsLoggedIn(true);
+        localStorage.setItem("isLoggedIn", "true");
         navigate("/dashboard");
       }
     } finally {

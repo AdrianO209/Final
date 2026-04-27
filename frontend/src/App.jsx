@@ -7,7 +7,9 @@ import Header from "./components/Header.jsx";
 import Dashboard from "./components/Dashboard.jsx";
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    localStorage.getItem("isLoggedIn") === "true",
+  );
 
   return (
     <BrowserRouter>
@@ -20,7 +22,7 @@ function App() {
           overflow: "hidden",
         }}
       >
-        <Header isLoggedIn={isLoggedIn} />
+        <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
 
         <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
           <Routes>

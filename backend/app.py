@@ -21,7 +21,11 @@ jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 
 cors_origin = os.environ.get("CORS_ORIGINS")
-CORS(app, resources={r"/*": {"origins": cors_origin}}, supports_credentials=True)
+CORS(
+    app,
+    resources={r"/*": {"origins": [cors_origin, "http://localhost:8080"]}},
+    supports_credentials=True,
+)
 
 # Admin
 app.config["FLASK_ADMIN_SWATCH"] = "cerulean"

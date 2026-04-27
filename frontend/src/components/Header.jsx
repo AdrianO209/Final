@@ -1,8 +1,16 @@
 // import { useState, useEffect } from "react";
 import { Box, Grow, AppBar, Toolbar, Container, Button } from "@mui/material";
 import { GiChessQueen } from "react-icons/gi";
+import { useNavigate } from "react-router-dom";
 
-function Header({ isLoggedIn }) {
+function Header({ isLoggedIn, setIsLoggedIn }) {
+  const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    localStorage.removeItem("isLoggedIn");
+    setIsLoggedIn(false);
+    navigate("/login");
+  };
   // const [anchorNav, setAnchorNav] = useState(null);
 
   // const handleOpenNavMenu = (event) => setAnchorNav(event.currentTarget);
@@ -29,7 +37,9 @@ function Header({ isLoggedIn }) {
                   bgcolor: "primary.main",
                 }}
               >
-                <Button color="inherit">Sign Out</Button>
+                <Button color="inherit" onClick={handleSignOut}>
+                  Sign Out
+                </Button>
               </Box>
             ) : null}
           </Toolbar>
