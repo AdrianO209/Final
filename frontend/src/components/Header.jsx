@@ -7,7 +7,7 @@ function Header({ isLoggedIn, setIsLoggedIn }) {
   const navigate = useNavigate();
 
   const handleSignOut = () => {
-    localStorage.removeItem("isLoggedIn");
+    sessionStorage.removeItem("isLoggedIn");
     setIsLoggedIn(false);
     navigate("/login");
   };

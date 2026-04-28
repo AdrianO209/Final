@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -23,6 +23,11 @@ function LoginForm({ setIsLoggedIn }) {
 
   const navigate = useNavigate();
   const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
+
+  useEffect(() => {
+    sessionStorage.removeItem("isLoggedIn");
+    setIsLoggedIn(false);
+  }, [setIsLoggedIn]);
 
   const fetchLogin = async () => {
     setIsLoading(true);
@@ -50,8 +55,9 @@ function LoginForm({ setIsLoggedIn }) {
         setPasswordInput("");
         setErrorMessage("");
         setHasError(false);
+
         setIsLoggedIn(true);
-        localStorage.setItem("isLoggedIn", "true");
+        sessionStorage.setItem("isLoggedIn", "true");
         navigate("/dashboard");
       }
     } finally {

@@ -8,7 +8,7 @@ import Dashboard from "./components/Dashboard.jsx";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
-    localStorage.getItem("isLoggedIn") === "true",
+    sessionStorage.getItem("isLoggedIn") === "true",
   );
 
   return (
@@ -31,7 +31,12 @@ function App() {
               path="/login"
               element={<LoginPage setIsLoggedIn={setIsLoggedIn} />}
             />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route
+              path="/dashboard"
+              element={
+                isLoggedIn ? <Dashboard /> : <Navigate to="/login" replace />
+              }
+            />
           </Routes>
         </Box>
       </Box>
