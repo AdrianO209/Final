@@ -1,11 +1,17 @@
+import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Box } from "@mui/material";
 import "./App.css";
 import LoginPage from "./components/LoginPage.jsx";
 import Header from "./components/Header.jsx";
 import ChessGame from "./components/ChessGame.jsx";
+import Dashboard from "./components/Dashboard.jsx";
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    sessionStorage.getItem("isLoggedIn") === "true",
+  );
+
   return (
     <BrowserRouter>
       <Box
@@ -17,13 +23,22 @@ function App() {
           overflow: "hidden",
         }}
       >
-        <Header />
+        <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
 
         <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
           <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/login"
+              element={<LoginPage setIsLoggedIn={setIsLoggedIn} />}
+            />
             <Route path="/game" element={<ChessGame />} />
+            <Route
+              path="/dashboard"
+              element={
+                isLoggedIn ? <Dashboard /> : <Navigate to="/login" replace />
+              }
+            />
           </Routes>
         </Box>
       </Box>
