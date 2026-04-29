@@ -21,23 +21,32 @@ function Header({ isLoggedIn, setIsLoggedIn }) {
       <AppBar
         position="static"
         sx={{
-          bgcolor: "primary.main",
-          color: "primary.contrastText",
+          bgcolor: "background.paper",
+          color: "text.primary",
           minHeight: "10%",
+          borderBottom: "1px solid #00A8FF",
         }}
       >
         <Container maxWidth="xl">
           <Toolbar sx={{ display: "flex", alignItems: "center" }}>
-            <GiChessQueen size={50} />
+            <GiChessQueen size={50} color="white" />
             {isLoggedIn ? (
               <Box
                 sx={{
                   ml: "auto",
-                  color: "primary.contrastText",
-                  bgcolor: "primary.main",
                 }}
               >
-                <Button color="inherit" onClick={handleSignOut}>
+                <Button
+                  onClick={handleSignOut}
+                  sx={{
+                    color: "white",
+                    fontweight: "bold",
+                    bgcolor: "transparent",
+                    "&:hover": {
+                      bgcolor: "rgba(255, 255, 255, 0.1)",
+                    },
+                  }}
+                >
                   Sign Out
                 </Button>
               </Box>
