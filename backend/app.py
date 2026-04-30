@@ -57,6 +57,12 @@ class UserCredentials(db.Model):
 class GameSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
+    # Lobby Name
+    name = db.Column(
+        db.String(100),
+        default=lambda: f"Lobby #{db.session.query(GameSession).count() + 1}",
+    )
+
     # Foreign Keys
     white_player_id = db.Column(
         db.Integer, db.ForeignKey("user_credentials.id"), nullable=False
