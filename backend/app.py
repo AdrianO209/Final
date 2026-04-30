@@ -54,7 +54,7 @@ class UserCredentials(db.Model):
         return self.password == passwordAttempt
 
 
-class GameSession(db.model):
+class GameSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     # Foreign Keys
@@ -66,12 +66,16 @@ class GameSession(db.model):
     )
 
     # Chess Data
-    current_fen = db.Column(db.String, default='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+    current_fen = db.Column(
+        db.String, default="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    )
 
-    move_history = db.Column(db.Text, default='')
-    
-tatus = db.Column(db.String(20), default='active') # active, checkmate, draw
-    winner_id = db.Column(db.Integer, db.ForeignKey('user_credentials.id'), nullable=True)
+    move_history = db.Column(db.Text, default="")
+
+    status = db.Column(db.String(20), default="active")  # active, checkmate, draw
+    winner_id = db.Column(
+        db.Integer, db.ForeignKey("user_credentials.id"), nullable=True
+    )
 
 
 # Admin Model Views
