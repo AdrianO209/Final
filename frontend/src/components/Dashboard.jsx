@@ -37,7 +37,9 @@ function Dashboard() {
         </Tabs>
       </Box>
       <CustomTabPanel value={activeTabIndex} index={0}>
-        <Typography>Testing</Typography>
+        <Box sx={{ display: "flex", justifyContent: "center", mt: "10px" }}>
+          <Typography>Test</Typography>
+        </Box>
       </CustomTabPanel>
     </>
   );

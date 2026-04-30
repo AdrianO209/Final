@@ -54,6 +54,26 @@ class UserCredentials(db.Model):
         return self.password == passwordAttempt
 
 
+class GameSession(db.model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    # Foreign Keys
+    white_player_id = db.Column(
+        db.Integer, db.ForeignKey("user_credentials.id"), nullable=False
+    )
+    black_player_id = db.Column(
+        db.Integer, db.ForeignKey("user_credentials.id"), nullable=False
+    )
+
+    # Chess Data
+    current_fen = db.Column(db.String, default='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+
+    move_history = db.Column(db.Text, default='')
+    
+tatus = db.Column(db.String(20), default='active') # active, checkmate, draw
+    winner_id = db.Column(db.Integer, db.ForeignKey('user_credentials.id'), nullable=True)
+
+
 # Admin Model Views
 admin.add_view(ModelView(UserCredentials, db.session))
 
@@ -74,12 +94,6 @@ def login():
 
         return response
 
-    """if user is None:
-        return jsonify({"error": "Invalid credentials", "field": "username"}), 401
-
-    if not bcrypt.check_password_hash(user.password, passwordInput):
-        return jsonify({"error": "invalid credentials", "field": "password"}), 401
-    """
     return jsonify({"error": "Invalid credentials! Or register a new account!/"}), 400
 
 
