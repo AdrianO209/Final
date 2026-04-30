@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, Typography, Tabs, Tab } from "@mui/material";
+import { Box, Typography, Tabs, Tab, Paper } from "@mui/material";
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
