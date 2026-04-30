@@ -82,6 +82,7 @@ class GameSession(db.Model):
     winner_id = db.Column(
         db.Integer, db.ForeignKey("user_credentials.id"), nullable=True
     )
+    increment_seconds = db.Column(db.Integer, default=0)
 
 
 # Admin Model Views

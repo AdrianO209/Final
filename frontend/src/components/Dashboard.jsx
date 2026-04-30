@@ -1,29 +1,6 @@
 import { useState } from "react";
-import {
-  Box,
-  Typography,
-  Tabs,
-  Tab,
-  Paper,
-  Container,
-  Divider,
-} from "@mui/material";
-
-function CustomTabPanel(props) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
-}
+import { Box, Typography, Tabs, Tab, Paper, Divider } from "@mui/material";
+import GameConfig from "./GameConfig.jsx";
 
 function Dashboard() {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
@@ -58,29 +35,7 @@ function Dashboard() {
 
         <Divider />
 
-        <CustomTabPanel value={activeTabIndex} index={0}>
-          <Box sx={{ py: 4 }}>
-            <Container maxWidth="md" sx={{ mt: 8 }}>
-              <Paper
-                elevation={6}
-                sx={{
-                  p: 4,
-                  bgcolor: "background.paper",
-                  borderRadius: 2,
-                  border: "1px solid rgba(255, 255, 255, 0.05)",
-                }}
-              >
-                <Typography
-                  variant="h5"
-                  align="center"
-                  sx={{ fontWeight: "bold", mb: 3 }}
-                >
-                  Game Configuration
-                </Typography>
-              </Paper>
-            </Container>
-          </Box>
-        </CustomTabPanel>
+        <GameConfig activeTabIndex={activeTabIndex} />
       </Paper>
     </>
   );
