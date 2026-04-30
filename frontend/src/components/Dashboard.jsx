@@ -34,9 +34,8 @@ function Dashboard() {
         </Tabs>
 
         <Divider />
-
-        <GameConfig activeTabIndex={activeTabIndex} />
       </Paper>
+      <GameConfig activeTabIndex={activeTabIndex} />
     </>
   );
 }

@@ -8,17 +8,35 @@ import {
   TextField,
   Paper,
   Button,
+  Slider,
 } from "@mui/material";
 import CustomTabPanel from "./CustomTabPanel.jsx";
 
 function GameConfig({ activeTabIndex }) {
   const [timeControl, setTimeControl] = useState(600);
+  const [increment, setIncrement] = useState(0);
+  const [name, setName] = useState("");
 
   const handleTimeChange = (event, newTime) => {
     if (newTime !== null) {
       setTimeControl(newTime);
     }
   };
+
+  const handleIncrementChange = (event, newIncrementTime) => {
+    setIncrement(newIncrementTime);
+  };
+
+  const incrementMarks = [
+    { value: 0, label: "0s" },
+    { value: 1, label: "1s" },
+    { value: 2, label: "2s" },
+    { value: 5, label: "5s" },
+    { value: 10, label: "10s" },
+    { value: 15, label: "15s" },
+    { value: 30, label: "30s" },
+  ];
+
   return (
     <>
       <CustomTabPanel value={activeTabIndex} index={0}>
@@ -41,29 +59,51 @@ function GameConfig({ activeTabIndex }) {
                 Game Configuration
               </Typography>
 
-              <Typography variant="subtitle1" gutterBottom>
-                Choose Name
-              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Choose Name
+                </Typography>
 
-              <TextField label="Name" variant="standard" />
+                <TextField
+                  label="Name"
+                  variant="standard"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                  }}
+                />
+                <Typography variant="subtitle1" gutterBottom>
+                  Choose Pace (Minutes)
+                </Typography>
+                <ToggleButtonGroup
+                  value={timeControl}
+                  exclusive
+                  onChange={handleTimeChange}
+                  fullWidth
+                  color="primary"
+                >
+                  <ToggleButton value={60}>1m</ToggleButton>
+                  <ToggleButton value={300}>5m</ToggleButton>
+                  <ToggleButton value={600}>10m</ToggleButton>
+                  <ToggleButton value={1800}>30m</ToggleButton>
+                </ToggleButtonGroup>
 
-              <Typography variant="subtitle1" gutterBottom>
-                Choose Pace
-              </Typography>
-              <ToggleButtonGroup
-                value={timeControl}
-                exclusive
-                onChange={handleTimeChange}
-                fullWidth
-                color="primary"
-              >
-                <ToggleButton value={60}>1m</ToggleButton>
-                <ToggleButton value={300}>5m</ToggleButton>
-                <ToggleButton value={600}>10m</ToggleButton>
-                <ToggleButton value={1800}>30m</ToggleButton>
-              </ToggleButtonGroup>
+                <Typography variant="subtitle1" gutterBottom>
+                  {" "}
+                  Bonus Time (Increment)
+                </Typography>
 
-              <Button variant="outlined">Create</Button>
+                <Slider
+                  value={increment}
+                  onChange={handleIncrementChange}
+                  marks={incrementMarks}
+                  max={30}
+                  step={null}
+                  valueLabelDisplay="off"
+                />
+
+                <Button variant="outlined">Create</Button>
+              </Box>
             </Paper>
           </Container>
         </Box>
