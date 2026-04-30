@@ -24,7 +24,8 @@ function Header({ isLoggedIn, setIsLoggedIn }) {
           bgcolor: "background.paper",
           color: "text.primary",
           minHeight: "10%",
-          borderBottom: "1px solid #00A8FF",
+          borderBottom: 1,
+          borderColor: "divider",
         }}
       >
         <Container maxWidth="xl">

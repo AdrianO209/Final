@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Box, Typography, Tabs, Tab, Paper } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Tabs,
+  Tab,
+  Paper,
+  Container,
+  Divider,
+} from "@mui/material";
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -30,17 +38,50 @@ function Dashboard() {
   };
   return (
     <>
-      <Box sx={{ display: "flex", justifyContent: "center" }}>
-        <Tabs value={activeTabIndex} onChange={handleChange}>
+      <Paper
+        elevation={0}
+        sx={{
+          bgcolor: "background.paper",
+          color: "text.primary",
+        }}
+      >
+        <Tabs
+          value={activeTabIndex}
+          onChange={handleChange}
+          textColor="inherit"
+          indicatorColor="primary"
+          variant="fullWidth"
+        >
           <Tab label="Create Game!" sx={sharedTabStyles} />
           <Tab label="Join a Game!" sx={sharedTabStyles} />
         </Tabs>
-      </Box>
-      <CustomTabPanel value={activeTabIndex} index={0}>
-        <Box sx={{ display: "flex", justifyContent: "center", mt: "10px" }}>
-          <Typography>Test</Typography>
-        </Box>
-      </CustomTabPanel>
+
+        <Divider />
+
+        <CustomTabPanel value={activeTabIndex} index={0}>
+          <Box sx={{ py: 4 }}>
+            <Container maxWidth="md" sx={{ mt: 8 }}>
+              <Paper
+                elevation={6}
+                sx={{
+                  p: 4,
+                  bgcolor: "background.paper",
+                  borderRadius: 2,
+                  border: "1px solid rgba(255, 255, 255, 0.05)",
+                }}
+              >
+                <Typography
+                  variant="h5"
+                  align="center"
+                  sx={{ fontWeight: "bold", mb: 3 }}
+                >
+                  Game Configuration
+                </Typography>
+              </Paper>
+            </Container>
+          </Box>
+        </CustomTabPanel>
+      </Paper>
     </>
   );
 }
