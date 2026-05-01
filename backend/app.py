@@ -195,9 +195,12 @@ def join_match(match_id):
     if game.status != "active":
         return {"error": "This match is no longer active"}, 400
 
+    if game.white_player_id == userID:
+        return jsonify({"error": "You are already the White player"}), 400
+
     if game.black_player_id is None:
         game.black_player_id = userID
-        game.status = "full"  # Optional: Mark it full so it leaves the lobby list
+        game.status = "full"
     else:
         return jsonify({"error": "Black player slot is already taken"}), 400
 

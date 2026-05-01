@@ -93,6 +93,7 @@ function LoginForm({ setIsLoggedIn }) {
         setIsSuccess(true);
         setTimeout(() => setIsSuccess(false), 10000);
         setIsRegisterLoading(false);
+        setIsLoggedIn(true);
       }
     } finally {
       setIsRegisterLoading(false);

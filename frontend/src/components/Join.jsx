@@ -15,6 +15,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import CustomTabPanel from "./CustomTabPanel.jsx";
+import { useNavigate } from "react-router-dom";
 
 const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
 
@@ -30,6 +31,7 @@ function Join({ activeTabIndex }) {
             Authorization: `Bearer ${token}`,
           },
         });
+
         const result = await response.json();
 
         if (response.ok) {
@@ -44,6 +46,27 @@ function Join({ activeTabIndex }) {
       fetchData();
     }
   }, [activeTabIndex]);
+
+  const navigate = useNavigate();
+
+  const joinGame = async (matchID) => {
+    const token = localStorage.getItem("chess_token");
+    const response = await fetch(`${API_BASE_URL}/join/${matchID}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      console.log("Success!");
+      navigate(`/game/${matchID}`);
+    } else {
+      return console.error("Join failed:", result.error);
+    }
+  };
 
   return (
     <Box>
@@ -90,13 +113,19 @@ function Join({ activeTabIndex }) {
                     secondaryAction={
                       current.status === "active" ? (
                         <Tooltip title="Join">
-                          <IconButton sx={{ mr: 2 }}>
+                          <IconButton
+                            sx={{ mr: 2 }}
+                            onClick={() => joinGame(current.id)}
+                          >
                             <AddIcon />
                           </IconButton>
                         </Tooltip>
                       ) : (
                         <Tooltip title="Spectate">
-                          <IconButton sx={{ mr: 2 }}>
+                          <IconButton
+                            sx={{ mr: 2 }}
+                            onClick={() => joinGame(current.id)}
+                          >
                             <VisibilityIcon />
                           </IconButton>
                         </Tooltip>

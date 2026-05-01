@@ -10,7 +10,7 @@ import {
   Slider,
 } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
-
+import { useNavigate } from "react-router-dom";
 import CustomTabPanel from "./CustomTabPanel.jsx";
 import { io } from "socket.io-client";
 
@@ -29,6 +29,7 @@ function GameConfig({ activeTabIndex }) {
   const [errorMessage, setErrorMessage] = useState("");
   const [success, setSuccess] = useState(false);
   const [gameId, setGameId] = useState("");
+  const navigate = useNavigate();
 
   const handleTimeChange = (event, newTime) => {
     if (newTime !== null) {
@@ -80,6 +81,7 @@ function GameConfig({ activeTabIndex }) {
         setName("");
         setTimer(600);
         setIncrement(0);
+        navigate(`/game/${result.Game_id}`);
       } else {
         setError(true);
         setErrorMessage(result.error || result.msg);
