@@ -10,7 +10,6 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import (
     JWTManager,
     create_access_token,
-    set_access_cookies,
     jwt_required,
     get_jwt_identity,
 )
@@ -182,6 +181,19 @@ def games():
     db.session.commit()
 
     return jsonify({"Game_id: ": new_session.id, "message": "Game Created!"}), 201
+
+
+@app.route("/api/join/<int:match_id>", methods=["POST", "GET"])
+def join_match(match_id):
+    game = GameSession.query.get(match_id)
+
+    if not game:
+        return jsonify({"error": "Game not found"}), 401
+
+    if game.status != "active":
+        return {"error": "This match is no longer active"}, 400
+
+    return {"message": f"Successfully joined {game.name}!"}, 200
 
 
 # Initialization SQL
