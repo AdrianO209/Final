@@ -137,6 +137,24 @@ def register():
     return jsonify(({"error": "User already exist!"})), 400
 
 
+@app.route("/fetch", methods=["GET"])
+@jwt_required()
+def fetch():
+    totalMatches = GameSession.query.filter_by(active="active").all()
+    gameList = []
+
+    for i in totalMatches:
+        gameList.append(
+            {
+                "id": i.id,
+                "name": i.name,
+                "increment_seconds": i.increment_seconds,
+            }
+        )
+
+    return jsonify(gameList), 200
+
+
 @app.route("/games", methods=["POST"])
 @jwt_required()
 def games():

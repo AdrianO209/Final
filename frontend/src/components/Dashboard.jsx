@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Box, Typography, Tabs, Tab, Paper, Divider } from "@mui/material";
 import GameConfig from "./GameConfig.jsx";
+import Join from "./Join.jsx";
 
 function Dashboard() {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
@@ -36,6 +37,7 @@ function Dashboard() {
         <Divider />
       </Paper>
       <GameConfig activeTabIndex={activeTabIndex} />
+      <Join activeTabIndex={activeTabIndex} />
     </>
   );
 }
