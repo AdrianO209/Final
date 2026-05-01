@@ -53,7 +53,7 @@ function GameConfig({ activeTabIndex }) {
     setIsLoading(true);
     setSuccess(false);
     try {
-      const response = await fetch(`${API_BASE_URL}/game`, {
+      const response = await fetch(`${API_BASE_URL}/games`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
