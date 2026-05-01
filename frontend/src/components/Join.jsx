@@ -1,23 +1,44 @@
-import { useState } from "react";
-import { Box, Typography, Paper, Container } from "@mui/material";
+import { useState, useEffect } from "react";
+import {
+  Box,
+  Typography,
+  Paper,
+  Container,
+  List,
+  ListItem,
+  Button,
+  Tooltip,
+} from "@mui/material";
 import CustomTabPanel from "./CustomTabPanel.jsx";
 
 const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
 
 function Join({ activeTabIndex }) {
   const [matchList, setMatchList] = useState([]);
-  const [hasError, setHasError] = useState(false);
 
-  const fetch = async () => {
-    const response = await fetch(`${API_BASE_URL}/fetch`);
-    const result = await response.json();
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("chess_token");
+        const response = await fetch(`${API_BASE_URL}/fetch`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const result = await response.json();
 
-    if (response.ok) {
-      setMatchList(result);
-    } else {
-      setHasError(true);
+        if (response.ok) {
+          setMatchList(result);
+        }
+      } catch (err) {
+        console.error("Fetch failed:", err);
+      }
+    };
+
+    if (activeTabIndex == 1) {
+      fetchData();
     }
-  };
+  }, [activeTabIndex]);
 
   return (
     <Box>
@@ -40,6 +61,19 @@ function Join({ activeTabIndex }) {
               >
                 Matches
               </Typography>{" "}
+              {matchList.map((current) => (
+                <ListIteam
+                  key={current.id}
+                  divider
+                  secondaryAction={
+                    <Tooltip title="Join">
+                      <Button>Join</Button>
+                    </Tooltip>
+                  }
+                >
+                  <ListItem primary={current.name || `Lobby #${current.id}`} />
+                </ListIteam>
+              ))}
             </Paper>
           </Container>
         </Box>
