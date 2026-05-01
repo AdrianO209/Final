@@ -140,7 +140,7 @@ def register():
 @app.route("/fetch", methods=["GET"])
 @jwt_required()
 def fetch():
-    totalMatches = GameSession.query.filter_by(active="active").all()
+    totalMatches = GameSession.query.filter_by(status="active").all()
     gameList = []
 
     for i in totalMatches:
