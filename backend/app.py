@@ -150,8 +150,7 @@ def games():
     lobby_name = data.get("name")
 
     if not lobby_name or lobby_name.strip() == "":
-        count = GameSession.query.count()
-        lobby_name = f"Lobby #{count + 1}"
+        return jsonify({"error": "Please provide a name for your lobby!"}), 400
 
     new_session = GameSession(
         name=lobby_name,

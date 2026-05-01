@@ -28,6 +28,7 @@ function GameConfig({ activeTabIndex }) {
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [success, setSuccess] = useState(false);
+  const [gameId, setGameId] = useState("");
 
   const handleTimeChange = (event, newTime) => {
     if (newTime !== null) {
@@ -73,6 +74,7 @@ function GameConfig({ activeTabIndex }) {
       if (response.ok) {
         setError(false);
         setSuccess(true);
+        setGameId(result.Game_id);
       } else {
         setError(true);
         setErrorMessage(result.msg);
