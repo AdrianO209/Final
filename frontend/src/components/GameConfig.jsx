@@ -67,7 +67,7 @@ function GameConfig({ activeTabIndex }) {
 
       const result = await response.json();
 
-      if (result.ok) {
+      if (response.ok) {
         setError(false);
         setSuccess(true);
       } else {

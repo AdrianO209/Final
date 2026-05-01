@@ -145,19 +145,19 @@ def register():
 @app.route("/games", methods=["POST"])
 @jwt_required()
 def games():
-    data = request.json
-
     current_username = get_jwt_identity()
     user = UserCredentials.query.filter_by(username=current_username).first()
+
+    if user is None:
+        return jsonify(({"error": "User not found!"})), 404
+
+    data = request.json
 
     lobby_name = data.get("name")
 
     if not lobby_name or lobby_name.strip() == "":
         count = GameSession.query.count()
         lobby_name = f"Lobby #{count + 1}"
-
-    if user is None:
-        return jsonify(({"error": "User not found!"})), 404
 
     new_session = GameSession(
         name=lobby_name,
