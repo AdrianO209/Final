@@ -186,7 +186,7 @@ def games():
 @app.route("/join/<int:match_id>", methods=["POST"])
 @jwt_required()
 def join_match(match_id):
-    userId = get_jwt_identity()
+    userID = get_jwt_identity()
     game = GameSession.query.get(match_id)
 
     if not game:
@@ -195,7 +195,11 @@ def join_match(match_id):
     if game.status != "active":
         return {"error": "This match is no longer active"}, 400
 
-    game.black_player_id = userId
+    if game.black_player_id is None:
+        game.black_player_id = userID
+        game.status = "full"  # Optional: Mark it full so it leaves the lobby list
+    else:
+        return jsonify({"error": "Black player slot is already taken"}), 400
 
     db.session.commit()
 
