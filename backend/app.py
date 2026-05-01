@@ -183,8 +183,10 @@ def games():
     return jsonify({"Game_id: ": new_session.id, "message": "Game Created!"}), 201
 
 
-@app.route("/api/join/<int:match_id>", methods=["POST", "GET"])
+@app.route("/join/<int:match_id>", methods=["POST"])
+@jwt_required()
 def join_match(match_id):
+    # userId = get_jwt_identity();
     game = GameSession.query.get(match_id)
 
     if not game:
