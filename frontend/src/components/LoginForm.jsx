@@ -37,7 +37,6 @@ function LoginForm({ setIsLoggedIn }) {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include",
         body: JSON.stringify({
           username: usernameInput,
           password: passwordInput,
@@ -58,6 +57,7 @@ function LoginForm({ setIsLoggedIn }) {
 
         setIsLoggedIn(true);
         sessionStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("chess_token", result.token);
         navigate("/dashboard");
       }
     } finally {
@@ -73,7 +73,6 @@ function LoginForm({ setIsLoggedIn }) {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include",
         body: JSON.stringify({
           username: usernameInput,
           password: passwordInput,
@@ -94,7 +93,6 @@ function LoginForm({ setIsLoggedIn }) {
         setIsSuccess(true);
         setTimeout(() => setIsSuccess(false), 10000);
         setIsRegisterLoading(false);
-        setIsLoggedIn(true);
       }
     } finally {
       setIsRegisterLoading(false);

@@ -52,13 +52,16 @@ function GameConfig({ activeTabIndex }) {
   const handleCreateButton = async () => {
     setIsLoading(true);
     setSuccess(false);
+
+    const token = localStorage.getItem("chess_token");
+
     try {
       const response = await fetch(`${API_BASE_URL}/games`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        credentials: "include",
         body: JSON.stringify({
           name: name,
           increment: increment,

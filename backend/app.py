@@ -20,9 +20,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
-app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
-app.config["JWT_COOKIE_SECURE"] = True
-app.config["JWT_COOKIE_CSRF_PROTECT"] = True
+app.config["JWT_TOKEN_LOCATION"] = ["headers"]
 
 jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
@@ -112,10 +110,7 @@ def login():
     if user and bcrypt.check_password_hash(user.password, passwordInput):
         access_token = create_access_token(identity=user.username)
 
-        response = make_response(jsonify({"message": "Login successful!"}), 200)
-        set_access_cookies(response, access_token)
-
-        return response
+        return jsonify({"message": "Login successful!", "token": access_token}), 200
 
     return jsonify({"error": "Invalid credentials! Or register a new account!/"}), 400
 
