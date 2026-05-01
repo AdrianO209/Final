@@ -186,7 +186,7 @@ def games():
 @app.route("/join/<int:match_id>", methods=["POST"])
 @jwt_required()
 def join_match(match_id):
-    # userId = get_jwt_identity();
+    userId = get_jwt_identity()
     game = GameSession.query.get(match_id)
 
     if not game:
@@ -194,6 +194,10 @@ def join_match(match_id):
 
     if game.status != "active":
         return {"error": "This match is no longer active"}, 400
+
+    game.black_player_id = userId
+
+    db.session.commit()
 
     return {"message": f"Successfully joined {game.name}!"}, 200
 
