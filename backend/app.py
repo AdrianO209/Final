@@ -147,7 +147,7 @@ def register():
 
 
 @app.route("/games", methods=["POST"])
-@jwt_required()
+# @jwt_required()
 def games():
     data = request.json
 
