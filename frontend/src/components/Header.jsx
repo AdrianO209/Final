@@ -65,35 +65,41 @@ function Header({ isLoggedIn, setIsLoggedIn }) {
           <Toolbar sx={{ display: "flex", alignItems: "center" }}>
             <GiChessQueen size={50} color="white" />
             {isLoggedIn ? (
-              <Box
-                sx={{
-                  ml: "auto",
-                }}
-              >
+              <>
                 <Typography
-                  variant="body1"
+                  variant="h4"
                   sx={{
                     color: "white",
                     fontWeight: 500,
+                    ml: 2,
+                    mt: 2,
                     opacity: 0.9,
+                    textTransform: "capitalize",
                   }}
                 >
-                  Welcome, {userName}
+                  Welcome back, {userName}
                 </Typography>
-                <Button
-                  onClick={handleSignOut}
+                <Box
                   sx={{
-                    color: "white",
-                    fontweight: "bold",
-                    bgcolor: "transparent",
-                    "&:hover": {
-                      bgcolor: "rgba(255, 255, 255, 0.1)",
-                    },
+                    ml: "auto",
+                    mt: 2,
                   }}
                 >
-                  Sign Out
-                </Button>
-              </Box>
+                  <Button
+                    onClick={handleSignOut}
+                    sx={{
+                      color: "white",
+                      fontweight: 500,
+                      bgcolor: "transparent",
+                      "&:hover": {
+                        bgcolor: "rgba(255, 255, 255, 0.1)",
+                      },
+                    }}
+                  >
+                    Sign Out
+                  </Button>
+                </Box>
+              </>
             ) : null}
           </Toolbar>
         </Container>
