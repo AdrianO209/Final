@@ -2,8 +2,22 @@ import { useState } from "react";
 import { Box, Typography, Paper, Container } from "@mui/material";
 import CustomTabPanel from "./CustomTabPanel.jsx";
 
+const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
+
 function Join({ activeTabIndex }) {
-  const allMatches = [];
+  const [matchList, setMatchList] = useState([]);
+  const [hasError, setHasError] = useState(false);
+
+  const fetch = async () => {
+    const response = await fetch(`${API_BASE_URL}/fetch`);
+    const result = await response.json();
+
+    if (response.ok) {
+      setMatchList(result);
+    } else {
+      setHasError(true);
+    }
+  };
 
   return (
     <Box>
