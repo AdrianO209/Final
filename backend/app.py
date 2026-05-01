@@ -98,7 +98,7 @@ class GameSession(db.Model):
 admin.add_view(ModelView(UserCredentials, db.session))
 
 
-@app.route("/fetch/user", methods=["GET"])
+@app.route("/me", methods=["GET"])
 @jwt_required()
 def fetchUser():
     user_id = get_jwt_identity()
