@@ -9,7 +9,6 @@ import {
   Grow,
   Stack,
 } from "@mui/material";
-import LoadingButton from "@mui/lab/LoadingButton";
 import { useNavigate } from "react-router-dom";
 
 function LoginForm({ setIsLoggedIn }) {
@@ -163,7 +162,7 @@ function LoginForm({ setIsLoggedIn }) {
             helperText={hasError ? errorMessage : ""}
           />
 
-          <LoadingButton
+          <Button
             loading={isLoading}
             variant="contained"
             fullWidth
@@ -179,9 +178,9 @@ function LoginForm({ setIsLoggedIn }) {
             onClick={fetchLogin}
           >
             Sign In
-          </LoadingButton>
+          </Button>
 
-          <LoadingButton
+          <Button
             loading={isRegisterLoading}
             variant="text"
             size="small"
@@ -194,7 +193,7 @@ function LoginForm({ setIsLoggedIn }) {
             color={isSuccess ? "success" : "primary"}
           >
             Register
-          </LoadingButton>
+          </Button>
         </Stack>
       </Paper>
     </Grow>

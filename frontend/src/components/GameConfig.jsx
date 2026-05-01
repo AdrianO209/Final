@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   Box,
+  Button,
   Container,
   Typography,
   ToggleButtonGroup,
@@ -9,7 +10,6 @@ import {
   Paper,
   Slider,
 } from "@mui/material";
-import LoadingButton from "@mui/lab/LoadingButton";
 import { useNavigate } from "react-router-dom";
 import CustomTabPanel from "./CustomTabPanel.jsx";
 import { io } from "socket.io-client";
@@ -158,7 +158,7 @@ function GameConfig({ activeTabIndex }) {
                   valueLabelDisplay="off"
                 />
 
-                <LoadingButton
+                <Button
                   loading={isLoading}
                   variant="outlined"
                   onClick={handleCreateButton}
@@ -170,7 +170,7 @@ function GameConfig({ activeTabIndex }) {
                   color={success ? "success" : "primary"}
                 >
                   Create
-                </LoadingButton>
+                </Button>
               </Box>
             </Paper>
           </Container>
