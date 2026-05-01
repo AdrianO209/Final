@@ -107,8 +107,7 @@ def login():
     user = UserCredentials.query.filter_by(username=usernameInput).first()
 
     if user and bcrypt.check_password_hash(user.password, passwordInput):
-        access_token = create_access_token(identity=user.username)
-
+        access_token = create_access_token(identity=user.id)
         return jsonify({"message": "Login successful!", "token": access_token}), 200
 
     return jsonify({"error": "Invalid credentials! Or register a new account!/"}), 400
@@ -186,20 +185,20 @@ def games():
 @app.route("/join/<int:match_id>", methods=["POST"])
 @jwt_required()
 def join_match(match_id):
-    userID = get_jwt_identity()
+    user_id = get_jwt_identity()
     game = GameSession.query.get(match_id)
 
     if not game:
-        return jsonify({"error": "Game not found"}), 401
+        return jsonify({"error": "Game not found"}), 404
 
     if game.status != "active":
         return {"error": "This match is no longer active"}, 400
 
-    if game.white_player_id == userID:
+    if game.white_player_id == user_id:
         return jsonify({"error": "You are already the White player"}), 400
 
     if game.black_player_id is None:
-        game.black_player_id = userID
+        game.black_player_id = user_id
         game.status = "full"
     else:
         return jsonify({"error": "Black player slot is already taken"}), 400
