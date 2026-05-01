@@ -107,7 +107,7 @@ def login():
     user = UserCredentials.query.filter_by(username=usernameInput).first()
 
     if user and bcrypt.check_password_hash(user.password, passwordInput):
-        access_token = create_access_token(identity=user.id)
+        access_token = create_access_token(identity=str(user.id))
         return jsonify({"message": "Login successful!", "token": access_token}), 200
 
     return jsonify({"error": "Invalid credentials! Or register a new account!/"}), 400
