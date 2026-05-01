@@ -21,8 +21,9 @@ load_dotenv()
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
 app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
-app.config["JWT_COOKIE_SECURE"] = True
-app.config["JWT_COOKIE_CSRF_PROTECT"] = True
+app.config["JWT_COOKIE_SECURE"] = False
+app.config["JWT_COOKIE_CSRF_PROTECT"] = False
+app.config["JWT_COOKIE_SAMESITE"] = "Lax"
 
 jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
@@ -152,7 +153,6 @@ def games():
         return jsonify(({"error": "User not found!"})), 404
 
     data = request.json
-
     lobby_name = data.get("name")
 
     if not lobby_name or lobby_name.strip() == "":
