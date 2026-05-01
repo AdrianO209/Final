@@ -66,11 +66,7 @@ class GameSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     # Lobby Name
-    name = db.Column(
-        db.String(100),
-        default=lambda: f"Lobby #{db.session.query(GameSession).count() + 1}",
-    )
-
+    name = db.Column(db.String(100), nullable=True)
     # Foreign Keys
     white_player_id = db.Column(
         db.Integer, db.ForeignKey("user_credentials.id"), nullable=False
@@ -154,11 +150,17 @@ def games():
     current_username = get_jwt_identity()
     user = UserCredentials.query.filter_by(username=current_username).first()
 
+    lobby_name = data.get("name")
+
+    if not lobby_name or lobby_name.strip() == "":
+        count = GameSession.query.count()
+        lobby_name = f"Lobby #{count + 1}"
+
     if user is None:
         return jsonify(({"error": "User not found!"})), 404
 
     new_session = GameSession(
-        name=data.get("name"),
+        name=lobby_name,
         white_player_id=user.id,
         black_player_id=None,
         increment_seconds=data.get("increment"),
