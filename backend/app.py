@@ -149,6 +149,7 @@ def fetch():
                 "id": i.id,
                 "name": i.name,
                 "increment_seconds": i.increment_seconds,
+                "status": i.status,
             }
         )
 
