@@ -22,8 +22,7 @@ app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
 app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
 app.config["JWT_COOKIE_SECURE"] = True
-app.config["JWT_COOKIE_CSRF_PROTECT"] = False
-app.config["JWT_COOKIE_SAMESITE"] = "None"
+app.config["JWT_COOKIE_CSRF_PROTECT"] = True
 
 jwt = JWTManager(app)
 bcrypt = Bcrypt(app)

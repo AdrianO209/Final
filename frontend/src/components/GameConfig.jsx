@@ -72,7 +72,7 @@ function GameConfig({ activeTabIndex }) {
         setSuccess(true);
       } else {
         setError(true);
-        setErrorMessage(result.error);
+        setErrorMessage(result.msg);
       }
     } finally {
       setIsLoading(false);
