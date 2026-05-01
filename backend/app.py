@@ -157,8 +157,8 @@ def fetch():
 @app.route("/games", methods=["POST"])
 @jwt_required()
 def games():
-    current_username = get_jwt_identity()
-    user = UserCredentials.query.filter_by(username=current_username).first()
+    user_id = get_jwt_identity()
+    user = UserCredentials.query.get(user_id)
 
     if user is None:
         return jsonify(({"error": "Authentication failed!"})), 404
