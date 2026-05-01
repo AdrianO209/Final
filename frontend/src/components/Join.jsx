@@ -6,9 +6,14 @@ import {
   Container,
   List,
   ListItem,
+  ListItemText,
+  ListSubheader,
   Button,
   Tooltip,
+  IconButton,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import CustomTabPanel from "./CustomTabPanel.jsx";
 
 const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
@@ -61,19 +66,49 @@ function Join({ activeTabIndex }) {
               >
                 Matches
               </Typography>{" "}
-              {matchList.map((current) => (
-                <ListIteam
-                  key={current.id}
-                  divider
-                  secondaryAction={
-                    <Tooltip title="Join">
-                      <Button>Join</Button>
-                    </Tooltip>
-                  }
-                >
-                  <ListItem primary={current.name || `Lobby #${current.id}`} />
-                </ListIteam>
-              ))}
+              <List
+                subheader={
+                  <ListSubheader
+                    sx={{
+                      color: "primary.main",
+                      fontWeight: "bold",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      px: 2,
+                    }}
+                  >
+                    <span>Lobby's Name</span>
+                    <span style={{ marginRight: "1rem" }}>Status</span>
+                  </ListSubheader>
+                }
+              >
+                {matchList.map((current) => (
+                  <ListItem
+                    key={current.id}
+                    divider
+                    secondaryAction={
+                      current.status === "active" ? (
+                        <Tooltip title="Join">
+                          <IconButton sx={{ mr: 2 }}>
+                            <AddIcon />
+                          </IconButton>
+                        </Tooltip>
+                      ) : (
+                        <Tooltip title="Spectate">
+                          <IconButton sx={{ mr: 2 }}>
+                            <VisibilityIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )
+                    }
+                  >
+                    <ListItemText
+                      primary={current.name || `Lobby #${current.id}`}
+                    />
+                  </ListItem>
+                ))}
+              </List>
             </Paper>
           </Container>
         </Box>
