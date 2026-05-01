@@ -7,15 +7,27 @@ import {
   ToggleButton,
   TextField,
   Paper,
-  Button,
   Slider,
 } from "@mui/material";
+import LoadingButton from "@mui/lab/LoadingButton";
+
 import CustomTabPanel from "./CustomTabPanel.jsx";
+import { io } from "socket.io-client";
+
+const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
+
+const socket = io(`${API_BASE_URL}`, {
+  autoConnect: false,
+});
 
 function GameConfig({ activeTabIndex }) {
   const [timeControl, setTimeControl] = useState(600);
   const [increment, setIncrement] = useState(0);
   const [name, setName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const handleTimeChange = (event, newTime) => {
     if (newTime !== null) {
@@ -36,6 +48,36 @@ function GameConfig({ activeTabIndex }) {
     { value: 15, label: "15s" },
     { value: 30, label: "30s" },
   ];
+
+  const handleCreateButton = async () => {
+    setIsLoading(true);
+    setSuccess(false);
+    try {
+      const response = await fetch(`${API_BASE_URL}/game`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          name: name,
+          increment: increment,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.ok) {
+        setError(false);
+        setSuccess(true);
+      } else {
+        setError(true);
+        setErrorMessage(result.error);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
@@ -71,6 +113,8 @@ function GameConfig({ activeTabIndex }) {
                   onChange={(e) => {
                     setName(e.target.value);
                   }}
+                  error={error}
+                  helperText={error ? errorMessage : ""}
                 />
                 <Typography variant="subtitle1" gutterBottom>
                   Choose Pace (Minutes)
@@ -102,7 +146,19 @@ function GameConfig({ activeTabIndex }) {
                   valueLabelDisplay="off"
                 />
 
-                <Button variant="outlined">Create</Button>
+                <LoadingButton
+                  loading={isLoading}
+                  variant="outlined"
+                  onClick={handleCreateButton}
+                  sx={{
+                    fontWeight: "bold",
+                    transition: "transform 0.2s",
+                    "&:hover": { transform: "scale(1.02)" },
+                  }}
+                  color={success ? "success" : "primary"}
+                >
+                  Create
+                </LoadingButton>
               </Box>
             </Paper>
           </Container>

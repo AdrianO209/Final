@@ -1,12 +1,19 @@
 import os
 from flask import Flask, jsonify, request, make_response
+from flask_socketio import SocketIO, emit, join_room
 from flask_admin import Admin
 from flask_admin.theme import Bootstrap4Theme
 from flask_admin.contrib.sqla import ModelView
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
-from flask_jwt_extended import JWTManager, create_access_token, set_access_cookies
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    set_access_cookies,
+    jwt_required,
+    get_jwt_identity,
+)
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,6 +26,7 @@ app.config["JWT_COOKIE_CSRF_PROTECT"] = True
 
 jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
+socketio = SocketIO()
 
 cors_origin = os.environ.get("CORS_ORIGINS")
 CORS(
@@ -68,7 +76,7 @@ class GameSession(db.Model):
         db.Integer, db.ForeignKey("user_credentials.id"), nullable=False
     )
     black_player_id = db.Column(
-        db.Integer, db.ForeignKey("user_credentials.id"), nullable=False
+        db.Integer, db.ForeignKey("user_credentials.id"), nullable=True
     )
 
     # Chess Data
@@ -83,6 +91,14 @@ class GameSession(db.Model):
         db.Integer, db.ForeignKey("user_credentials.id"), nullable=True
     )
     increment_seconds = db.Column(db.Integer, default=0)
+
+    def __init__(
+        self, name, white_player_id, black_player_id=None, increment_seconds=0
+    ):
+        self.name = name
+        self.white_player_id = white_player_id
+        self.black_player_id = black_player_id
+        self.increment_seconds = increment_seconds
 
 
 # Admin Model Views
@@ -130,9 +146,35 @@ def register():
     return jsonify(({"error": "User already exist!"})), 400
 
 
+@app.route("/games", methods=["POST"])
+@jwt_required()
+def games():
+    data = request.json
+
+    current_username = get_jwt_identity()
+    user = UserCredentials.query.filter_by(username=current_username).first()
+
+    if user is None:
+        return jsonify(({"error": "User not found!"})), 404
+
+    new_session = GameSession(
+        name=data.get("name"),
+        white_player_id=user.id,
+        black_player_id=None,
+        increment_seconds=data.get("increment"),
+    )
+
+    db.session.add(new_session)
+    db.session.commit()
+
+    return jsonify({"Game_id: ": new_session.id, "message": "Game Created!"}), 201
+
+
 # Initialization SQL
 with app.app_context():
     db.create_all()
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5001)))
+    socketio.init_app(app, cors_allowed_origins="*")
+    port = int(os.environ.get("PORT", 5001))
+    socketio.run(app, host="0.0.0.0", port=port, debug=True)
