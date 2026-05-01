@@ -21,7 +21,7 @@ const socket = io(`${API_BASE_URL}`, {
 });
 
 function GameConfig({ activeTabIndex }) {
-  const [timeControl, setTimeControl] = useState(600);
+  const [timer, setTimer] = useState(600);
   const [increment, setIncrement] = useState(0);
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +32,7 @@ function GameConfig({ activeTabIndex }) {
 
   const handleTimeChange = (event, newTime) => {
     if (newTime !== null) {
-      setTimeControl(newTime);
+      setTimer(newTime);
     }
   };
 
@@ -74,10 +74,15 @@ function GameConfig({ activeTabIndex }) {
       if (response.ok) {
         setError(false);
         setSuccess(true);
+        setTimeout(() => setSuccess(false), 10000);
         setGameId(result.Game_id);
+
+        setName("");
+        setTimer(600);
+        setIncrement(0);
       } else {
         setError(true);
-        setErrorMessage(result.msg);
+        setErrorMessage(result.error || result.msg);
       }
     } finally {
       setIsLoading(false);
@@ -108,7 +113,7 @@ function GameConfig({ activeTabIndex }) {
 
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <Typography variant="subtitle1" gutterBottom>
-                  Choose Name
+                  Choose Lobby's Name
                 </Typography>
 
                 <TextField
@@ -125,7 +130,7 @@ function GameConfig({ activeTabIndex }) {
                   Choose Pace (Minutes)
                 </Typography>
                 <ToggleButtonGroup
-                  value={timeControl}
+                  value={timer}
                   exclusive
                   onChange={handleTimeChange}
                   fullWidth
