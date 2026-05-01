@@ -33,6 +33,7 @@ function App() {
               element={<LoginPage setIsLoggedIn={setIsLoggedIn} />}
             />
             <Route path="/game/:matchID" element={<ChessGame />} />
+            <Route path="/game" element={<ChessGame />} />
             <Route
               path="/dashboard"
               element={
