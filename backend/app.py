@@ -98,6 +98,18 @@ class GameSession(db.Model):
 admin.add_view(ModelView(UserCredentials, db.session))
 
 
+@app.route("/fetch/user", methods=["GET"])
+@jwt_required()
+def fetchUser():
+    user_id = get_jwt_identity()
+    user = UserCredentials.query.get(user_id)
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    return jsonify({"id": user.id, "username": user.username}), 200
+
+
 @app.route("/login", methods=["POST"])
 def login():
     data = request.json

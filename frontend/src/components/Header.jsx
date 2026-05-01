@@ -16,6 +16,10 @@ function Header({ isLoggedIn, setIsLoggedIn }) {
   // const handleOpenNavMenu = (event) => setAnchorNav(event.currentTarget);
   // const handleClose = () => setAnchorNav(null);
 
+  useEffect(() => {
+    const fetchUserName = async () => {};
+  }, []);
+
   return (
     <Grow in={true} timeout={1000}>
       <AppBar
@@ -37,6 +41,16 @@ function Header({ isLoggedIn, setIsLoggedIn }) {
                   ml: "auto",
                 }}
               >
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: "white",
+                    fontWeight: 500,
+                    opacity: 0.9,
+                  }}
+                >
+                  Welcome, **{userName}**
+                </Typography>
                 <Button
                   onClick={handleSignOut}
                   sx={{
