@@ -1,7 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
-import { Box, Typography, Paper, Button } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Paper,
+  Button,
+  CircularProgress,
+} from "@mui/material";
 import { io } from "socket.io-client";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -99,31 +105,22 @@ function ChessGame() {
 
   function onSquareClick({ square, piece }) {
     if (!gameReady) return;
-
     if (!myColor || game.current.turn() !== myColor) return;
 
-    if (!moveFrom && piece) {
-      const hasOptions = getMoveOptions(square);
-      if (hasOptions) setMoveFrom(square);
+    // 2. FIRST CLICK: Selecting a piece to move
+    if (!moveFrom) {
+      const pieceDetails = game.current.get(square);
+      // Only allow selecting pieces that belong to the player
+      if (pieceDetails && pieceDetails.color === myColor) {
+        const hasOptions = getMoveOptions(square);
+        if (hasOptions) setMoveFrom(square);
+      }
       return;
     }
 
-    try {
-      game.current.move({
-        from: moveFrom,
-        to: square,
-        promotion: "q",
-      });
-
-      setFen(game.current.fen());
-      setMoveFrom("");
-      setOptionSquares({});
-
-      const nextTurn = game.current.turn() === "w" ? "White" : "Black";
-      setStatus(
-        game.current.isGameOver() ? "Game Over!" : `${nextTurn} to move`,
-      );
-    } catch {
+    // 3. CHANGING YOUR MIND: Clicking a different one of your own pieces
+    const targetPiece = game.current.get(square);
+    if (targetPiece && targetPiece.color === myColor) {
       const hasOptions = getMoveOptions(square);
       if (hasOptions) {
         setMoveFrom(square);
@@ -131,11 +128,33 @@ function ChessGame() {
         setMoveFrom("");
         setOptionSquares({});
       }
+      return;
     }
+
+    // 4. THE FIX: Executing the move over WebSockets
+
+    // Quick check for Pawn Promotion (auto-queen)
+    const movingPiece = game.current.get(moveFrom);
+    const isPromotion =
+      movingPiece.type === "p" &&
+      ((movingPiece.color === "w" && square[1] === "8") ||
+        (movingPiece.color === "b" && square[1] === "1"));
+
+    const moveString = `${moveFrom}${square}${isPromotion ? "q" : ""}`;
+
+    // Emit the move to Flask. Notice we DO NOT use setFen() here!
+    socket.emit("make_move", {
+      room: matchId,
+      move: moveString,
+    });
+
+    // Clear the yellow/grey UI highlights
+    setMoveFrom("");
+    setOptionSquares({});
   }
 
   const handleLeaveGame = () => {
-    navigate("/");
+    navigate("/dashboard");
   };
 
   const chessboardOptions = {
@@ -155,10 +174,36 @@ function ChessGame() {
         mt: 4,
       }}
     >
-      <Paper elevation={3} sx={{ p: 2, mb: 2, backgroundColor: "#312e2b" }}>
-        <Typography variant="h6" sx={{ color: "#fff", textAlign: "center" }}>
-          {status}
-        </Typography>
+      <Paper
+        elevation={3}
+        sx={{
+          p: 2,
+          mb: 2,
+          backgroundColor: "#312e2b",
+          color: "#fff",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          width: { xs: "90vw", sm: 500, md: 600 },
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          {!gameReady && <CircularProgress size={24} sx={{ color: "#aaa" }} />}
+          <Box>
+            <Typography variant="h6" sx={{ margin: 0 }}>
+              {!gameReady ? "Waiting for opponent..." : status}
+            </Typography>
+            {myColor && (
+              <Typography
+                variant="caption"
+                sx={{ display: "block", color: "#aaa" }}
+              >
+                Playing as: {myColor === "w" ? "White" : "Black"}
+              </Typography>
+            )}
+          </Box>
+        </Box>
+
         <Button variant="outlined" color="error" onClick={handleLeaveGame}>
           Leave Match
         </Button>
