@@ -1,4 +1,5 @@
 import os
+import chess
 from flask import Flask, jsonify, request
 from flask_socketio import SocketIO, emit, join_room
 from flask_admin import Admin
@@ -14,130 +15,79 @@ from flask_jwt_extended import (
     get_jwt_identity,
 )
 from dotenv import load_dotenv
-import chess
-
-games = {}
 
 load_dotenv()
 
 app = Flask(__name__)
-app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
+
+# --- CONFIGURATION ---
+app.config["JWT_SECRET_KEY"] = os.environ.get(
+    "JWT_SECRET_KEY", "super-secret-fallback-key"
+)
 app.config["JWT_TOKEN_LOCATION"] = ["headers"]
-
-jwt = JWTManager(app)
-bcrypt = Bcrypt(app)
-socketio = SocketIO()
-
-
-cors_origin = os.environ.get("CORS_ORIGINS", "")
-CORS(
-    app,
-    resources={r"/*": {"origins": [cors_origin, "http://localhost:8080"]}},
-    supports_credentials=True,
-)
-
-socketio = SocketIO(
-    app,
-    cors_allowed_origins=[
-        cors_origin,
-        "http://localhost:8080",
-        "http://localhost:5173",
-    ],
-)
-
-# Admin
 app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-admin = Admin(app, name="Chess", theme=Bootstrap4Theme(swatch="cerulean"))
-
-# Database
-database_url = os.environ.get("DATABASE_URL")
-
-if database_url is None:
-    raise ValueError("CRITICAL ERROR: DATABASE_URL environment variable is missing!")
-
+# Database Setup (Railway Postgres safe)
+database_url = os.environ.get("DATABASE_URL", "sqlite:///local.db")
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
-
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+
+# --- INITIALIZATION ---
 db = SQLAlchemy(app)
+jwt = JWTManager(app)
+bcrypt = Bcrypt(app)
+
+# Dynamic CORS: Allows Railway URL + Local Mac URLs
+cors_origin = os.environ.get("CORS_ORIGINS", "")
+allowed_origins = [
+    o for o in [cors_origin, "http://localhost:5173", "http://localhost:8080"] if o
+]
+
+CORS(app, resources={r"/*": {"origins": allowed_origins}}, supports_credentials=True)
+socketio = SocketIO(app, cors_allowed_origins=allowed_origins)
 
 
+# --- MODELS ---
 class UserCredentials(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, unique=True, nullable=False)
-    password = db.Column(db.String, unique=False, nullable=False)
+    password = db.Column(db.String, nullable=False)
 
+    # Upgraded OOP method using bcrypt
     def checkPassword(self, passwordAttempt):
-        return self.password == passwordAttempt
+        return bcrypt.check_password_hash(self.password, passwordAttempt)
 
 
 class GameSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-
-    # Lobby Name
     name = db.Column(db.String(100), nullable=True)
-    # Foreign Keys
     white_player_id = db.Column(
         db.Integer, db.ForeignKey("user_credentials.id"), nullable=False
     )
     black_player_id = db.Column(
         db.Integer, db.ForeignKey("user_credentials.id"), nullable=True
     )
-
-    # Chess Data
-    current_fen = db.Column(
-        db.String, default="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-    )
-
+    current_fen = db.Column(db.String, default=chess.STARTING_FEN)
     move_history = db.Column(db.Text, default="")
-
-    status = db.Column(db.String(20), default="active")  # active, checkmate, draw
+    status = db.Column(db.String(20), default="active")  # active, full, checkmate, draw
     winner_id = db.Column(
         db.Integer, db.ForeignKey("user_credentials.id"), nullable=True
     )
     increment_seconds = db.Column(db.Integer, default=0)
 
-    def __init__(
-        self, name, white_player_id, black_player_id=None, increment_seconds=0
-    ):
-        self.name = name
-        self.white_player_id = white_player_id
-        self.black_player_id = black_player_id
-        self.increment_seconds = increment_seconds
 
-
-# Admin Model Views
+# --- ADMIN ---
+admin = Admin(app, name="Chess Admin", theme=Bootstrap4Theme(swatch="cerulean"))
 admin.add_view(ModelView(UserCredentials, db.session))
+admin.add_view(ModelView(GameSession, db.session))
+
+# --- MEMORY STORE (For active Socket.io engines) ---
+games = {}
 
 
-@app.route("/me", methods=["GET"])
-@jwt_required()
-def fetchUser():
-    user_id = get_jwt_identity()
-    user = UserCredentials.query.get(user_id)
-
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-
-    return jsonify({"id": user.id, "username": user.username}), 200
-
-
-@app.route("/login", methods=["POST"])
-def login():
-    data = request.json
-    usernameInput = data.get("username")
-    passwordInput = data.get("password")
-
-    user = UserCredentials.query.filter_by(username=usernameInput).first()
-
-    if user and bcrypt.check_password_hash(user.password, passwordInput):
-        access_token = create_access_token(identity=str(user.id))
-        return jsonify({"message": "Login successful!", "token": access_token}), 200
-
-    return jsonify({"error": "Invalid credentials! Or register a new account!/"}), 400
-
-
+# --- REST ROUTES (Auth) ---
 @app.route("/register", methods=["POST"])
 def register():
     data = request.json
@@ -148,46 +98,60 @@ def register():
         return jsonify({"error": "Username and password are required"}), 400
 
     existingUser = UserCredentials.query.filter_by(username=username).first()
-
     if existingUser is None:
         hashedPW = bcrypt.generate_password_hash(password).decode("utf-8")
-        addUser = UserCredentials(username=username, password=hashedPW)  # type: ignore
-
+        addUser = UserCredentials(username=username, password=hashedPW)
         db.session.add(addUser)
         db.session.commit()
         return jsonify({"message": "Success!"}), 201
 
-    return jsonify(({"error": "User already exist!"})), 400
+    return jsonify({"error": "User already exists!"}), 400
+
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.json
+    user = UserCredentials.query.filter_by(username=data.get("username")).first()
+
+    # Utilizing the custom checkPassword function from the model
+    if user and user.checkPassword(data.get("password")):
+        access_token = create_access_token(identity=str(user.id))
+        return jsonify({"message": "Login successful!", "token": access_token}), 200
+
+    return jsonify({"error": "Invalid credentials!"}), 400
+
+
+# --- REST ROUTES (Protected App Logic) ---
+@app.route("/me", methods=["GET"])
+@jwt_required()
+def fetchUser():
+    user_id = get_jwt_identity()
+    user = UserCredentials.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    return jsonify({"id": user.id, "username": user.username}), 200
 
 
 @app.route("/fetch", methods=["GET"])
 @jwt_required()
 def fetch():
     totalMatches = GameSession.query.all()
-    gameList = []
-
-    for i in totalMatches:
-        gameList.append(
-            {
-                "id": i.id,
-                "name": i.name,
-                "increment_seconds": i.increment_seconds,
-                "status": i.status,
-            }
-        )
-
+    gameList = [
+        {
+            "id": i.id,
+            "name": i.name,
+            "increment_seconds": i.increment_seconds,
+            "status": i.status,
+        }
+        for i in totalMatches
+    ]
     return jsonify(gameList), 200
 
 
 @app.route("/games", methods=["POST"])
 @jwt_required()
-def games():
+def create_game():
     user_id = get_jwt_identity()
-    user = UserCredentials.query.get(user_id)
-
-    if user is None:
-        return jsonify(({"error": "Authentication failed!"})), 404
-
     data = request.json
     lobby_name = data.get("name")
 
@@ -196,15 +160,12 @@ def games():
 
     new_session = GameSession(
         name=lobby_name,
-        white_player_id=user.id,
-        black_player_id=None,
-        increment_seconds=data.get("increment"),
+        white_player_id=user_id,
+        increment_seconds=data.get("increment", 0),
     )
-
     db.session.add(new_session)
     db.session.commit()
-
-    return jsonify({"Game_id: ": new_session.id, "message": "Game Created!"}), 201
+    return jsonify({"Game_id": new_session.id, "message": "Game Created!"}), 201
 
 
 @app.route("/join/<int:match_id>", methods=["POST"])
@@ -215,59 +176,61 @@ def join_match(match_id):
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
-
     if game.status != "active":
-        return {"error": "This match is no longer active"}, 400
-
-    if game.white_player_id == user_id:
+        return jsonify({"error": "This match is no longer active"}), 400
+    if str(game.white_player_id) == str(user_id):
         return jsonify({"error": "You are already the White player"}), 400
 
     if game.black_player_id is None:
         game.black_player_id = user_id
         game.status = "full"
-    else:
-        return jsonify({"error": "Black player slot is already taken"}), 400
+        db.session.commit()
+        return jsonify({"message": f"Successfully joined {game.name}!"}), 200
 
-    db.session.commit()
-
-    return {"message": f"Successfully joined {game.name}!"}, 200
+    return jsonify({"error": "Black player slot is already taken"}), 400
 
 
+# --- SOCKET.IO REAL-TIME LOGIC ---
 @socketio.on("join_game")
 def handle_join(data):
-    room = data["room"]
-    join_room(room)
+    try:
+        room = str(data["room"])
+        join_room(room)
 
-    if room not in games:
-        games[room] = {"board": chess.Board(), "white": request.sid, "black": None}
-        emit("assign_color", "w")
-    elif games[room]["black"] is None:
-        games[room]["black"] = request.sid
-        emit("assign_color", "b")
+        if room not in games:
+            games[room] = {"board": chess.Board(), "white": request.sid, "black": None}
+            emit("assign_color", "w")
+        elif games[room]["black"] is None and games[room]["white"] != request.sid:
+            games[room]["black"] = request.sid
+            emit("assign_color", "b")
 
-    # Send current board state to the joiner
-    emit("move_update", games[room]["board"].fen())
+        emit("move_update", games[room]["board"].fen())
+    except Exception as e:
+        print(f"Socket Join Error: {e}")
 
 
 @socketio.on("make_move")
 def handle_move(data):
-    room = data["room"]
-    move_data = data["move"]
-
-    game = games.get(room)
-    board = game["board"]
-
-    # Validation: Is it actually this player's turn?
-    current_turn = "w" if board.turn == chess.WHITE else "b"
-    player_id = request.sid
-
-    if (current_turn == "w" and player_id != game["white"]) or (
-        current_turn == "b" and player_id != game["black"]
-    ):
-        emit("error", "Not your turn!")
-        return
-
     try:
+        room = str(data["room"])
+        move_data = data["move"]
+        game = games.get(room)
+
+        if not game:
+            return
+
+        board = game["board"]
+        player_id = request.sid
+        current_turn = "w" if board.turn == chess.WHITE else "b"
+
+        # Turn & Player Validation
+        if (current_turn == "w" and player_id != game.get("white")) or (
+            current_turn == "b" and player_id != game.get("black")
+        ):
+            emit("error", "Not your turn!")
+            return
+
+        # Move execution
         move = chess.Move.from_uci(move_data)
         if move in board.legal_moves:
             board.push(move)
@@ -276,14 +239,15 @@ def handle_move(data):
             emit("error", "Invalid move!")
     except (ValueError, chess.InvalidMoveError, chess.IllegalMoveError):
         emit("error", "Illegal move format!")
+    except Exception as e:
+        print(f"Socket Move Error: {e}")
 
 
-#
-# Initialization SQL
+# --- STARTUP ---
 with app.app_context():
     db.create_all()
 
 if __name__ == "__main__":
-    socketio.init_app(app, cors_allowed_origins="*")
     port = int(os.environ.get("PORT", 5001))
+    print(f"Starting Railway-ready server on port {port}...")
     socketio.run(app, host="0.0.0.0", port=port, debug=True)
