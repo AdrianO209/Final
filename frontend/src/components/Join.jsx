@@ -90,6 +90,7 @@ function Join({ activeTabIndex }) {
                 Matches
               </Typography>{" "}
               <List
+                sx={{ overflowY: "auto", maxHeight: "50vh" }}
                 subheader={
                   <ListSubheader
                     sx={{
@@ -99,6 +100,7 @@ function Join({ activeTabIndex }) {
                       justifyContent: "space-between",
                       alignItems: "center",
                       px: 2,
+                      zIndex: 1,
                     }}
                   >
                     <span>Lobby's Name</span>
