@@ -1,7 +1,9 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { Box, Typography, Paper } from "@mui/material";
+import { io } from "socket.io-client";
+import { useParams } from "react-router-dom";
 
 function ChessGame() {
   const game = useRef(new Chess());

@@ -12,13 +12,8 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import CustomTabPanel from "./CustomTabPanel.jsx";
-import { io } from "socket.io-client";
 
 const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
-
-const socket = io(`${API_BASE_URL}`, {
-  autoConnect: false,
-});
 
 function GameConfig({ activeTabIndex }) {
   const [timer, setTimer] = useState(600);

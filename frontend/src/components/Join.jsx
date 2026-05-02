@@ -124,7 +124,7 @@ function Join({ activeTabIndex }) {
                         <Tooltip title="Spectate">
                           <IconButton
                             sx={{ mr: 2 }}
-                            onClick={() => joinGame(current.id)}
+                            onClick={() => navigate(`/game/${current.id}`)}
                           >
                             <VisibilityIcon />
                           </IconButton>
