@@ -72,13 +72,7 @@ class GameSession(db.Model):
     black_player_id = db.Column(
         db.Integer, db.ForeignKey("user_credentials.id"), nullable=True
     )
-    current_fen = db.Column(db.String, default=chess.STARTING_FEN)
-    move_history = db.Column(db.Text, default="")
     status = db.Column(db.String(20), default="active")  # active, full, checkmate, draw
-    winner_id = db.Column(
-        db.Integer, db.ForeignKey("user_credentials.id"), nullable=True
-    )
-    increment_seconds = db.Column(db.Integer, default=0)
 
 
 # --- ADMIN ---
@@ -143,7 +137,6 @@ def fetch():
         {
             "id": i.id,
             "name": i.name,
-            "increment_seconds": i.increment_seconds,
             "status": i.status,
         }
         for i in totalMatches
@@ -164,7 +157,6 @@ def create_game():
     new_session = GameSession(
         name=lobby_name,
         white_player_id=user_id,
-        increment_seconds=data.get("increment", 0),
     )
     db.session.add(new_session)
     db.session.commit()
@@ -296,3 +288,4 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     print(f"Starting Railway-ready server on port {port}...")
     socketio.run(app, host="0.0.0.0", port=port, debug=True)
+
