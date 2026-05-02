@@ -78,6 +78,9 @@ function GameConfig({ activeTabIndex }) {
         setTimeout(() => setSuccess(false), 10000);
         setGameId(result.Game_id);
 
+        sessionStorage.setItem("startingSeconds", timer);
+        sessionStorage.setItem("increment", increment);
+
         setName("");
         setTimer(600);
         setIncrement(0);

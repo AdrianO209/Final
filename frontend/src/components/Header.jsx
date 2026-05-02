@@ -9,12 +9,15 @@ import {
   Typography,
 } from "@mui/material";
 import { GiChessQueen } from "react-icons/gi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function Header({ isLoggedIn, setIsLoggedIn }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
   const [userName, setUserName] = useState("");
+
+  const isMatchPage = location.pathname.startsWith("/game");
 
   const handleSignOut = () => {
     sessionStorage.removeItem("isLoggedIn");
@@ -65,35 +68,37 @@ function Header({ isLoggedIn, setIsLoggedIn }) {
           <Toolbar sx={{ display: "flex", alignItems: "center" }}>
             <GiChessQueen size={50} color="white" />
             {isLoggedIn ? (
-              <Box
-                sx={{
-                  ml: "auto",
-                }}
-              >
-                <Typography
-                  variant="body1"
-                  sx={{
-                    color: "white",
-                    fontWeight: 500,
-                    opacity: 0.9,
-                  }}
-                >
-                  Welcome, {userName}
-                </Typography>
-                <Button
-                  onClick={handleSignOut}
-                  sx={{
-                    color: "white",
-                    fontweight: "bold",
-                    bgcolor: "transparent",
-                    "&:hover": {
-                      bgcolor: "rgba(255, 255, 255, 0.1)",
-                    },
-                  }}
-                >
-                  Sign Out
-                </Button>
-              </Box>
+              <>
+                {!isMatchPage && (
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      color: "white",
+                      fontWeight: 500,
+                      opacity: 0.9,
+                      ml: 2,
+                      mt: 2,
+                      textTransform: "capitalize",
+                    }}
+                  >
+                    Welcome Back, {userName}
+                  </Typography>
+                )}
+
+                <Box sx={{ ml: "auto" }}>
+                  <Button
+                    onClick={handleSignOut}
+                    sx={{
+                      color: "white",
+                      fontWeight: "bold",
+                      mt: 2,
+                      "&:hover": { bgcolor: "rgba(255, 255, 255, 0.1)" },
+                    }}
+                  >
+                    Sign Out
+                  </Button>
+                </Box>
+              </>
             ) : null}
           </Toolbar>
         </Container>
