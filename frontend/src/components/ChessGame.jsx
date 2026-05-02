@@ -5,6 +5,9 @@ import { Box, Typography, Paper } from "@mui/material";
 import { io } from "socket.io-client";
 import { useParams } from "react-router-dom";
 
+const API_URL = "https://backend-production-5b92.up.railway.app";
+const socket = io(API_URL, { autoConnect: false });
+
 function ChessGame() {
   const game = useRef(new Chess());
   const [fen, setFen] = useState(new Chess().fen());

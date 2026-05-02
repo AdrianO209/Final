@@ -24,10 +24,6 @@ function Header({ isLoggedIn, setIsLoggedIn }) {
     setIsLoggedIn(false);
     navigate("/login");
   };
-  // const [anchorNav, setAnchorNav] = useState(null);
-
-  // const handleOpenNavMenu = (event) => setAnchorNav(event.currentTarget);
-  // const handleClose = () => setAnchorNav(null);
 
   useEffect(() => {
     const fetchUserName = async () => {
