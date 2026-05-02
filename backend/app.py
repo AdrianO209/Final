@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, request, make_response
+from flask import Flask, jsonify, request
 from flask_socketio import SocketIO, emit, join_room
 from flask_admin import Admin
 from flask_admin.theme import Bootstrap4Theme
@@ -14,6 +14,9 @@ from flask_jwt_extended import (
     get_jwt_identity,
 )
 from dotenv import load_dotenv
+import chess
+
+games = {}
 
 load_dotenv()
 
@@ -25,12 +28,15 @@ jwt = JWTManager(app)
 bcrypt = Bcrypt(app)
 socketio = SocketIO()
 
-cors_origin = os.environ.get("CORS_ORIGINS")
+
+cors_origin = os.environ.get("CORS_ORIGINS", "")
 CORS(
     app,
     resources={r"/*": {"origins": [cors_origin, "http://localhost:8080"]}},
     supports_credentials=True,
 )
+
+socketio = SocketIO(app, cors_allowed_origins=[cors_origin, "http://localhost:8080"])
 
 # Admin
 app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
@@ -220,6 +226,50 @@ def join_match(match_id):
     return {"message": f"Successfully joined {game.name}!"}, 200
 
 
+@socketio.on("join_game")
+def handle_join(data):
+    room = data["room"]
+    join_room(room)
+
+    if room not in games:
+        games[room] = {"board": chess.Board(), "white": request.sid, "black": None}
+        emit("assign_color", "w")
+    elif games[room]["black"] is None:
+        games[room]["black"] = request.sid
+        emit("assign_color", "b")
+
+    emit("move_update", games[room]["board"].fen())
+
+
+@socketio.on("make_move")
+def handle_move(data):
+    room = data["room"]
+    move_data = data["move"]
+
+    game = games.get(room)
+    board = game["board"]
+
+    current_turn = "w" if board.turn == chess.WHITE else "b"
+    player_id = request.sid
+
+    if (current_turn == "w" and player_id != game["white"]) or (
+        current_turn == "b" and player_id != game["black"]
+    ):
+        emit("error", "Not your turn!")
+        return
+
+    try:
+        move = chess.Move.from_uci(move_data)
+        if move in board.legal_moves:
+            board.push(move)
+            emit("move_update", board.fen(), to=room)
+        else:
+            emit("error", "Invalid move!")
+    except (ValueError, chess.InvalidMoveError, chess.IllegalMoveError):
+        emit("error", "Illegal move format!")
+
+
+#
 # Initialization SQL
 with app.app_context():
     db.create_all()
