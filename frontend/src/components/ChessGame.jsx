@@ -35,7 +35,6 @@ function ChessGame() {
     return true;
   }
 
-  // V5 FIX 1: We receive an object { square, piece }, not a string!
   function onSquareClick({ square, piece }) {
     if (!moveFrom && piece) {
       const hasOptions = getMoveOptions(square);
@@ -69,13 +68,12 @@ function ChessGame() {
     }
   }
 
-  // V5 FIX 2: The exact option names the new library demands
   const chessboardOptions = {
     id: "ClickToMoveBoard",
     position: fen,
     onSquareClick: onSquareClick,
-    squareStyles: optionSquares, // No longer "customSquareStyles"
-    allowDragging: false, // No longer "arePiecesDraggable"
+    squareStyles: optionSquares,
+    allowDragging: false,
   };
 
   return (
@@ -93,7 +91,6 @@ function ChessGame() {
         </Typography>
       </Paper>
       <Box sx={{ width: { xs: "90vw", sm: 500, md: 600 } }}>
-        {/* V5 FIX 3: Passed as the 'options' prop, no spread operator! */}
         <Chessboard options={chessboardOptions} />
       </Box>
     </Box>
@@ -101,4 +98,3 @@ function ChessGame() {
 }
 
 export default ChessGame;
-
