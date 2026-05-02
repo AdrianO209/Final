@@ -14,6 +14,62 @@ function ChessGame() {
   const [moveFrom, setMoveFrom] = useState("");
   const [optionSquares, setOptionSquares] = useState({});
   const [status, setStatus] = useState("White to move");
+  const { matchId } = useParams();
+  const [myColor, setMyColor] = useState(null);
+  const myColorRef = useRef(null);
+  const [gameReady, setGameReady] = useState(false);
+
+  useEffect(() => {
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    socket.emit("join_game", { room: matchId });
+
+    socket.on("assign_color", (color) => {
+      setMyColor(color);
+      myColorRef.current = color;
+      setStatus(color === "w" ? "Your turn (White)" : "Waiting for White...");
+    });
+
+    socket.on("move_update", (newFen) => {
+      game.current.load(newFen);
+      setFen(newFen);
+      setOptionSquares({});
+
+      if (game.current.isGameOver()) {
+        setStatus(
+          game.current.isCheckmate()
+            ? "Checkmate! Game Over."
+            : "Game Over (Draw)",
+        );
+      } else {
+        const isMyTurn = game.current.turn() === myColorRef.current;
+        const turnLabel = game.current.turn() === "w" ? "White" : "Black";
+        setStatus(isMyTurn ? "Your turn" : `Waiting for ${turnLabel}...`);
+      }
+    });
+    socket.on("game_ready", (data) => {
+      setGameReady(data.ready);
+    });
+
+    socket.on("player_status", (data) => {
+      setGameReady(data.ready);
+    });
+
+    socket.on("error", (msg) => {
+      console.error("Server Error:", msg);
+    });
+
+    return () => {
+      socket.off("assign_color");
+      socket.off("move_update");
+      socket.off("error");
+      socket.off("game_ready");
+      socket.off("player_status");
+      socket.disconnect();
+    };
+  }, [matchId]);
 
   function getMoveOptions(square) {
     const moves = game.current.moves({ square, verbose: true });
@@ -41,6 +97,10 @@ function ChessGame() {
   }
 
   function onSquareClick({ square, piece }) {
+    if (!gameReady) return;
+
+    if (!myColor || game.current.turn() !== myColor) return;
+
     if (!moveFrom && piece) {
       const hasOptions = getMoveOptions(square);
       if (hasOptions) setMoveFrom(square);

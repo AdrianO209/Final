@@ -55,7 +55,6 @@ class UserCredentials(db.Model):
     username = db.Column(db.String, unique=True, nullable=False)
     password = db.Column(db.String, nullable=False)
 
-    # Upgraded OOP method using bcrypt
     def checkPassword(self, passwordAttempt):
         return bcrypt.check_password_hash(self.password, passwordAttempt)
 
@@ -200,9 +199,17 @@ def handle_join(data):
         if room not in games:
             games[room] = {"board": chess.Board(), "white": request.sid, "black": None}
             emit("assign_color", "w")
+            emit(
+                "player_status", {"ready": False, "msg": "Waiting for opponent..."}
+            )  # New!
+
         elif games[room]["black"] is None and games[room]["white"] != request.sid:
             games[room]["black"] = request.sid
             emit("assign_color", "b")
+            emit("game_ready", {"ready": True}, to=room)
+
+        elif games[room]["white"] is not None and games[room]["black"] is not None:
+            emit("game_ready", {"ready": True})
 
         emit("move_update", games[room]["board"].fen())
     except Exception as e:
@@ -251,3 +258,4 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     print(f"Starting Railway-ready server on port {port}...")
     socketio.run(app, host="0.0.0.0", port=port, debug=True)
+
