@@ -1,5 +1,8 @@
 import os
 import chess
+import eventlet
+
+eventlet.monkey_patch()
 from flask import Flask, jsonify, request
 from flask_socketio import SocketIO, emit, join_room
 from flask_admin import Admin
@@ -274,7 +277,6 @@ def handle_disconnect():
                 del games[room]
                 print(f"Room {room} deleted from server memory.")
                 try:
-                    # Convert the string room ID to an integer for the database
                     db_game = GameSession.query.get(int(room))
                     if db_game:
                         db.session.delete(db_game)
