@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
-import { Box, Typography, Paper } from "@mui/material";
+import { Box, Typography, Paper, Button } from "@mui/material";
 import { io } from "socket.io-client";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 const API_URL = "https://backend-production-5b92.up.railway.app";
 const socket = io(API_URL, { autoConnect: false });
@@ -18,6 +18,7 @@ function ChessGame() {
   const [myColor, setMyColor] = useState(null);
   const myColorRef = useRef(null);
   const [gameReady, setGameReady] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!socket.connected) {
@@ -133,6 +134,10 @@ function ChessGame() {
     }
   }
 
+  const handleLeaveGame = () => {
+    navigate("/");
+  };
+
   const chessboardOptions = {
     id: "ClickToMoveBoard",
     position: fen,
@@ -154,6 +159,9 @@ function ChessGame() {
         <Typography variant="h6" sx={{ color: "#fff", textAlign: "center" }}>
           {status}
         </Typography>
+        <Button variant="outlined" color="error" onClick={handleLeaveGame}>
+          Leave Match
+        </Button>
       </Paper>
       <Box sx={{ width: { xs: "90vw", sm: 500, md: 600 } }}>
         <Chessboard options={chessboardOptions} />

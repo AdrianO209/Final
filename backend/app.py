@@ -27,6 +27,7 @@ app.config["JWT_SECRET_KEY"] = os.environ.get(
 app.config["JWT_TOKEN_LOCATION"] = ["headers"]
 app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["BCRYPT_LOG_ROUNDS"] = 10
 
 # Database Setup (Railway Postgres safe)
 database_url = os.environ.get("DATABASE_URL", "sqlite:///local.db")
@@ -284,3 +285,4 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     print(f"Starting Railway-ready server on port {port}...")
     socketio.run(app, host="0.0.0.0", port=port, debug=True)
+
