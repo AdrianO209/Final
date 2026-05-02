@@ -1,61 +1,104 @@
-import { useState, useCallback } from "react";
+import { useState, useRef } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
-import { Box, Typography } from "@mui/material";
-
-const chess = new Chess();
+import { Box, Typography, Paper } from "@mui/material";
 
 function ChessGame() {
-  const [game, setGame] = useState(chess);
-  const [fen, setFen] = useState(chess.fen());
-  const [status, setStatus] = useState("White's turn");
+  const game = useRef(new Chess());
+  const [fen, setFen] = useState(new Chess().fen());
+  const [moveFrom, setMoveFrom] = useState("");
+  const [optionSquares, setOptionSquares] = useState({});
+  const [status, setStatus] = useState("White to move");
 
-  const updateStatus = (currentGame) => {
-    if (currentGame.isCheckmate()) {
-      const winner = currentGame.turn() === "w" ? "Black" : "White";
-      setStatus(`Checkmate! ${winner} wins!`);
-    } else if (currentGame.isDraw()) {
-      setStatus("Draw!");
-    } else if (currentGame.inCheck()) {
-      const turn = currentGame.turn() === "w" ? "White" : "Black";
-      setStatus(`${turn} is in check!`);
-    } else {
-      const turn = currentGame.turn() === "w" ? "White" : "Black";
-      setStatus(`${turn}'s turn`);
+  function getMoveOptions(square) {
+    const moves = game.current.moves({ square, verbose: true });
+
+    if (moves.length === 0) {
+      setOptionSquares({});
+      return false;
     }
-  };
 
-  const onDrop = useCallback((sourceSquare, targetSquare) => {
+    const newSquares = {};
+    moves.forEach((move) => {
+      newSquares[move.to] = {
+        background:
+          game.current.get(move.to) &&
+          game.current.get(move.to)?.color !== game.current.get(square)?.color
+            ? "radial-gradient(circle, rgba(0,0,0,.1) 85%, transparent 85%)"
+            : "radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)",
+        borderRadius: "50%",
+      };
+    });
+
+    newSquares[square] = { background: "rgba(255, 255, 0, 0.4)" };
+    setOptionSquares(newSquares);
+    return true;
+  }
+
+  // V5 FIX 1: We receive an object { square, piece }, not a string!
+  function onSquareClick({ square, piece }) {
+    if (!moveFrom && piece) {
+      const hasOptions = getMoveOptions(square);
+      if (hasOptions) setMoveFrom(square);
+      return;
+    }
+
     try {
-      const move = game.move({
-        from: sourceSquare,
-        to: targetSquare,
-        promotion: "q", // auto-promote to queen for now
+      game.current.move({
+        from: moveFrom,
+        to: square,
+        promotion: "q",
       });
 
-      if (!move) return false; // illegal move
+      setFen(game.current.fen());
+      setMoveFrom("");
+      setOptionSquares({});
 
-      setFen(game.fen());
-      updateStatus(game);
-      return true;
+      const nextTurn = game.current.turn() === "w" ? "White" : "Black";
+      setStatus(
+        game.current.isGameOver() ? "Game Over!" : `${nextTurn} to move`,
+      );
     } catch {
-      return false; // illegal move
+      const hasOptions = getMoveOptions(square);
+      if (hasOptions) {
+        setMoveFrom(square);
+      } else {
+        setMoveFrom("");
+        setOptionSquares({});
+      }
     }
-  }, [game]);
+  }
+
+  // V5 FIX 2: The exact option names the new library demands
+  const chessboardOptions = {
+    id: "ClickToMoveBoard",
+    position: fen,
+    onSquareClick: onSquareClick,
+    squareStyles: optionSquares, // No longer "customSquareStyles"
+    allowDragging: false, // No longer "arePiecesDraggable"
+  };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, mt: 4 }}>
-      <Typography variant="h6" color="text.primary">{status}</Typography>
-      <Box sx={{ width: 500 }}>
-        <Chessboard
-          position={fen}
-          onPieceDrop={onDrop}
-          customDarkSquareStyle={{ backgroundColor: "#8CA2AD" }}
-          customLightSquareStyle={{ backgroundColor: "#DEE3E6" }}
-        />
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        mt: 4,
+      }}
+    >
+      <Paper elevation={3} sx={{ p: 2, mb: 2, backgroundColor: "#312e2b" }}>
+        <Typography variant="h6" sx={{ color: "#fff", textAlign: "center" }}>
+          {status}
+        </Typography>
+      </Paper>
+      <Box sx={{ width: { xs: "90vw", sm: 500, md: 600 } }}>
+        {/* V5 FIX 3: Passed as the 'options' prop, no spread operator! */}
+        <Chessboard options={chessboardOptions} />
       </Box>
     </Box>
   );
 }
 
 export default ChessGame;
+
