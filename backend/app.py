@@ -276,6 +276,8 @@ def handle_disconnect():
                         print(f"Room {room} deleted from database.")
                 except Exception as e:
                     print(f"Database cleanup error: {e}")
+                finally:
+                    db.session.remove()
 
             break
 
@@ -288,4 +290,3 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     print(f"Starting Railway-ready server on port {port}...")
     socketio.run(app, host="0.0.0.0", port=port, debug=True)
-
