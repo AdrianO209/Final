@@ -21,52 +21,63 @@ const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
 
 function Join({ activeTabIndex }) {
   const [matchList, setMatchList] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("chess_token");
-        const response = await fetch(`${API_BASE_URL}/fetch`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          setMatchList(result);
-        }
-      } catch (err) {
-        console.error("Fetch failed:", err);
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem("chess_token");
+      const response = await fetch(`${API_BASE_URL}/fetch`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const result = await response.json();
+      if (response.ok) {
+        setMatchList(result);
       }
-    };
-
+    } catch (err) {
+      console.error("Fetch Failed:", err);
+    }
+  };
+  const handleRefresh = async () => {
+    setIsLoading(true);
+    await fetchData();
+    setIsLoading(false);
+  };
+  useEffect(() => {
     if (activeTabIndex == 1) {
       fetchData();
     }
   }, [activeTabIndex]);
 
-  const navigate = useNavigate();
-
-  const joinGame = async (matchID) => {
-    const token = localStorage.getItem("chess_token");
-    const response = await fetch(`${API_BASE_URL}/join/${matchID}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      console.log("Success!");
-      navigate(`/game/${matchID}`);
-    } else {
-      return console.error("Join failed:", result.error);
+  useEffect(() => {
+    if (activeTabIndex == 1) {
+      const interval = setInterval(() => {
+        fetchData();
+      }, 5000);
+      return () => clearInterval(interval);
     }
-  };
+  }, [activeTabIndex]);
+
+const joinGame = async (matchID) => {
+  const token = localStorage.getItem("chess_token");
+  const response = await fetch(`${API_BASE_URL}/join/${matchID}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const result = await response.json();
+
+  if (response.ok) {
+    console.log("Success!");
+    navigate(`/game/${matchID}`);
+  } else {
+    return console.error("Join failed:", result.error);
+  }
+};
 
   return (
     <Box>
@@ -82,13 +93,26 @@ function Join({ activeTabIndex }) {
                 border: "1px solid rgba(255, 255, 255, 0.05)",
               }}
             >
-              <Typography
-                variant="h5"
-                align="center"
-                sx={{ fontWeight: "bold", mb: 3 }}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 3,
+                }}
               >
-                Matches
-              </Typography>{" "}
+                <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+                  Matches
+                </Typography>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={handleRefresh}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Loading..." : "Refresh"}
+                </Button>
+              </Box>
               <List
                 sx={{ overflowY: "auto", maxHeight: "50vh" }}
                 subheader={
@@ -113,7 +137,7 @@ function Join({ activeTabIndex }) {
                     key={current.id}
                     divider
                     secondaryAction={
-                      current.status === "active" ? (
+                      current.status === "active" || current.status === "waiting" ? (
                         <Tooltip title="Join">
                           <IconButton
                             sx={{ mr: 2 }}
