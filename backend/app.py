@@ -273,6 +273,15 @@ def handle_disconnect():
             if game["white"] is None and game["black"] is None:
                 del games[room]
                 print(f"Room {room} deleted from server memory.")
+                try:
+                    # Convert the string room ID to an integer for the database
+                    db_game = GameSession.query.get(int(room))
+                    if db_game:
+                        db.session.delete(db_game)
+                        db.session.commit()
+                        print(f"Room {room} deleted from database.")
+                except Exception as e:
+                    print(f"Database cleanup error: {e}")
 
             break
 
@@ -285,4 +294,3 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     print(f"Starting Railway-ready server on port {port}...")
     socketio.run(app, host="0.0.0.0", port=port, debug=True)
-
