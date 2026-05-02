@@ -36,7 +36,14 @@ CORS(
     supports_credentials=True,
 )
 
-socketio = SocketIO(app, cors_allowed_origins=[cors_origin, "http://localhost:8080"])
+socketio = SocketIO(
+    app,
+    cors_allowed_origins=[
+        cors_origin,
+        "http://localhost:8080",
+        "http://localhost:5173",
+    ],
+)
 
 # Admin
 app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
@@ -238,6 +245,7 @@ def handle_join(data):
         games[room]["black"] = request.sid
         emit("assign_color", "b")
 
+    # Send current board state to the joiner
     emit("move_update", games[room]["board"].fen())
 
 
@@ -249,6 +257,7 @@ def handle_move(data):
     game = games.get(room)
     board = game["board"]
 
+    # Validation: Is it actually this player's turn?
     current_turn = "w" if board.turn == chess.WHITE else "b"
     player_id = request.sid
 
