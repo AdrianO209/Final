@@ -179,6 +179,10 @@ def join_match(match_id):
         return jsonify({"error": "This match is no longer active"}), 400
     if str(game.white_player_id) == str(user_id):
         return jsonify({"error": "You are already the White player"}), 400
+    if str(game.white_player_id) == str(user_id) or str(game.black_player_id) == str(
+        user_id
+    ):
+        return jsonify({"message": "Welcome back!"}), 200
 
     if game.black_player_id is None:
         game.black_player_id = user_id
@@ -199,9 +203,7 @@ def handle_join(data):
         if room not in games:
             games[room] = {"board": chess.Board(), "white": request.sid, "black": None}
             emit("assign_color", "w")
-            emit(
-                "player_status", {"ready": False, "msg": "Waiting for opponent..."}
-            )  # New!
+            emit("player_status", {"ready": False, "msg": "Waiting for opponent..."})
 
         elif games[room]["black"] is None and games[room]["white"] != request.sid:
             games[room]["black"] = request.sid
@@ -250,6 +252,30 @@ def handle_move(data):
         print(f"Socket Move Error: {e}")
 
 
+@socketio.on("disconnect")
+def handle_disconnect():
+    player_id = request.sid
+
+    for room, game in list(games.items()):
+        if game["white"] == player_id or game["black"] == player_id:
+            emit(
+                "player_status",
+                {"ready": False, "msg": "Opponent disconnected."},
+                to=room,
+            )
+
+            if game["white"] == player_id:
+                game["white"] = None
+            else:
+                game["black"] = None
+
+            if game["white"] is None and game["black"] is None:
+                del games[room]
+                print(f"Room {room} deleted from server memory.")
+
+            break
+
+
 # --- STARTUP ---
 with app.app_context():
     db.create_all()
@@ -258,4 +284,3 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     print(f"Starting Railway-ready server on port {port}...")
     socketio.run(app, host="0.0.0.0", port=port, debug=True)
-
