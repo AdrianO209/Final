@@ -76,9 +76,11 @@ class GameSession(db.Model):
 
 
 # --- ADMIN ---
+class GameSessionView(ModelView):
+    can_delete = True
 admin = Admin(app, name="Chess Admin", theme=Bootstrap4Theme(swatch="cerulean"))
 admin.add_view(ModelView(UserCredentials, db.session))
-admin.add_view(ModelView(GameSession, db.session))
+admin.add_view(GameSessionView(GameSession, db.session))
 
 # --- MEMORY STORE (For active Socket.io engines) ---
 games = {}
@@ -182,7 +184,7 @@ def join_match(match_id):
 
     if game.black_player_id is None:
         game.black_player_id = user_id
-        game.status = "full"
+        game.status = "waiting"
         db.session.commit()
         return jsonify({"message": f"Successfully joined {game.name}!"}), 200
 
@@ -205,6 +207,12 @@ def handle_join(data):
             games[room]["black"] = request.sid
             emit("assign_color", "b")
             emit("game_ready", {"ready": True}, to=room)
+
+            with app.app_context():
+                db_game = GameSession.query.get(int(room))
+                if db_game:
+                    db_game.status = "full"
+                    db.session.commit()
 
         elif games[room]["white"] is not None and games[room]["black"] is not None:
             emit("game_ready", {"ready": True})

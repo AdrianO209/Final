@@ -153,7 +153,14 @@ function ChessGame() {
     setOptionSquares({});
   }
 
-  const handleLeaveGame = () => {
+  const handleLeaveGame = async () => {
+    const token = localStorage.getItem("chess_token");
+    await fetch(`${API_URL}/leave/${matchId}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     navigate("/dashboard");
   };
 
