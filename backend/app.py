@@ -216,29 +216,42 @@ def handle_join(data):
         room = str(data["room"])
         join_room(room)
 
+        db_game = GameSession.query.get(int(room))
+        if not db_game:
+            emit("error", "Game not found")
+            return
         if room not in games:
-            games[room] = {"board": chess.Board(), "white": request.sid, "black": None}
-            emit("assign_color", "w")
-            emit("player_status", {"ready": False, "msg": "Waiting for opponent..."})
+            games[room] = {
+                "board": chess.Board(),
+                "white": None,
+                "black": None
+            }
+        game = game[room]
 
-        elif games[room]["black"] is None and games[room]["white"] != request.sid:
-            games[room]["black"] = request.sid
+        if game["white"] is None:
+            game["white"] = request.sid
+            emit("assign_color", "w")
+
+            if game["black"] is not None:
+                emit("game_ready", {"ready": True}, to=room)
+            else:
+                emit("player_status", {"ready": False, "msg": "Waiting for Opponent..."})
+
+        elif game["black"] is None and game["white"] != request.sid:
+            game["black"] = request.sid
             emit("assign_color", "b")
             emit("game_ready", {"ready": True}, to=room)
 
-            with app.app_context():
-                db_game = GameSession.query.get(int(room))
-                if db_game:
-                    db_game.status = "full"
-                    db.session.commit()
+            db_game.status = "full"
+            db.session.commit()
 
-        elif games[room]["white"] is not None and games[room]["black"] is not None:
+        elif game["white"] is not None and game["black"] is not None:
             emit("game_ready", {"ready": True})
 
-        emit("move_update", games[room]["board"].fen())
+        emit("move_update", game["board"].fen())
+
     except Exception as e:
         print(f"Socket Join Error: {e}")
-
 
 @socketio.on("make_move")
 def handle_move(data):
