@@ -55,7 +55,7 @@ function Join({ activeTabIndex }) {
     if (activeTabIndex == 1) {
       const interval = setInterval(() => {
         fetchData();
-      }, 5000);
+      }, 15000);
       return () => clearInterval(interval);
     }
   }, [activeTabIndex]);
@@ -72,7 +72,7 @@ const joinGame = async (matchID) => {
   const result = await response.json();
 
   if (response.ok) {
-    console.log("Success!");
+    console.log("Success!", matchID);
     navigate(`/game/${matchID}`);
   } else {
     return console.error("Join failed:", result.error);
