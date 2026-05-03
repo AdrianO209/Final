@@ -226,7 +226,7 @@ def handle_join(data):
                 "white": None,
                 "black": None
             }
-        game = game[room]
+        game = games[room]
 
         if game["white"] is None:
             game["white"] = request.sid
