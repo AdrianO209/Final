@@ -31,7 +31,8 @@ function ChessGame() {
       socket.connect();
     }
 
-    socket.emit("join_game", { room: matchId });
+    const token = localStorage.getItem("chess_token");
+    socket.emit("join_game", {room: matchId, token: token});
 
     socket.on("assign_color", (color) => {
       setMyColor(color);
