@@ -39,7 +39,9 @@ function ChessGame() {
       setStatus(color === "w" ? "Your turn (White)" : "Waiting for White...");
     });
 
-    socket.on("move_update", (newFen) => {
+    socket.on("move_update", (data) => {
+      const newFen = typeof data === "string" ? data : data.fen;
+
       game.current.load(newFen);
       setFen(newFen);
       setOptionSquares({});
@@ -69,11 +71,12 @@ function ChessGame() {
     });
 
     return () => {
+      socket.off("join_game");
       socket.off("assign_color");
       socket.off("move_update");
-      socket.off("error");
       socket.off("game_ready");
       socket.off("player_status");
+      socket.off("error");
       socket.disconnect();
     };
   }, [matchId]);
@@ -107,10 +110,8 @@ function ChessGame() {
     if (!gameReady) return;
     if (!myColor || game.current.turn() !== myColor) return;
 
-    // 2. FIRST CLICK: Selecting a piece to move
     if (!moveFrom) {
       const pieceDetails = game.current.get(square);
-      // Only allow selecting pieces that belong to the player
       if (pieceDetails && pieceDetails.color === myColor) {
         const hasOptions = getMoveOptions(square);
         if (hasOptions) setMoveFrom(square);
@@ -118,7 +119,6 @@ function ChessGame() {
       return;
     }
 
-    // 3. CHANGING YOUR MIND: Clicking a different one of your own pieces
     const targetPiece = game.current.get(square);
     if (targetPiece && targetPiece.color === myColor) {
       const hasOptions = getMoveOptions(square);
@@ -131,9 +131,6 @@ function ChessGame() {
       return;
     }
 
-    // 4. THE FIX: Executing the move over WebSockets
-
-    // Quick check for Pawn Promotion (auto-queen)
     const movingPiece = game.current.get(moveFrom);
     const isPromotion =
       movingPiece.type === "p" &&
@@ -142,13 +139,11 @@ function ChessGame() {
 
     const moveString = `${moveFrom}${square}${isPromotion ? "q" : ""}`;
 
-    // Emit the move to Flask. Notice we DO NOT use setFen() here!
     socket.emit("make_move", {
       room: matchId,
       move: moveString,
     });
 
-    // Clear the yellow/grey UI highlights
     setMoveFrom("");
     setOptionSquares({});
   }
@@ -169,7 +164,8 @@ function ChessGame() {
     position: fen,
     onSquareClick: onSquareClick,
     squareStyles: optionSquares,
-    allowDragging: false,
+    boardOrientation: myColor === "b" ? "black" : "white",
+    arePiecesDraggable: false,
   };
 
   return (
@@ -200,12 +196,19 @@ function ChessGame() {
             <Typography variant="h6" sx={{ margin: 0 }}>
               {!gameReady ? "Waiting for opponent..." : status}
             </Typography>
-            {myColor && (
+            {myColor ? (
               <Typography
                 variant="caption"
                 sx={{ display: "block", color: "#aaa" }}
               >
                 Playing as: {myColor === "w" ? "White" : "Black"}
+              </Typography>
+            ) : (
+              <Typography
+                variant="caption"
+                sx={{ display: "block", color: "#4caf50" }}
+              >
+                Spectating Match{" "}
               </Typography>
             )}
           </Box>

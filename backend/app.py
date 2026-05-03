@@ -4,7 +4,7 @@ import eventlet
 
 eventlet.monkey_patch()
 from flask import Flask, jsonify, request
-from flask_socketio import SocketIO, emit, join_room
+from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_admin import Admin
 from flask_admin.theme import Bootstrap4Theme
 from flask_admin.contrib.sqla import ModelView
@@ -72,12 +72,16 @@ class GameSession(db.Model):
     black_player_id = db.Column(
         db.Integer, db.ForeignKey("user_credentials.id"), nullable=True
     )
-    status = db.Column(db.String(20), default="active")  # active, full, checkmate, draw
+    timer = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(20), default="active")
+    increment = db.Column(db.Integer, default=0, nullable=False)
 
 
 # --- ADMIN ---
 class GameSessionView(ModelView):
     can_delete = True
+
+
 admin = Admin(app, name="Chess Admin", theme=Bootstrap4Theme(swatch="cerulean"))
 admin.add_view(ModelView(UserCredentials, db.session))
 admin.add_view(GameSessionView(GameSession, db.session))
@@ -152,12 +156,16 @@ def create_game():
     user_id = get_jwt_identity()
     data = request.json
     lobby_name = data.get("name")
+    newTimer = data.get("timer")
+    newIncrement = data.get("increment")
 
     if not lobby_name or lobby_name.strip() == "":
         return jsonify({"error": "Please provide a name for your lobby!"}), 400
 
     new_session = GameSession(
         name=lobby_name,
+        timer=newTimer,
+        increment=newIncrement,
         white_player_id=user_id,
     )
     db.session.add(new_session)
@@ -190,6 +198,7 @@ def join_match(match_id):
 
     return jsonify({"error": "Black player slot is already taken"}), 400
 
+
 @app.route("/leave/<int:match_id>", methods=["POST"])
 @jwt_required()
 def leave_match(match_id):
@@ -209,6 +218,7 @@ def leave_match(match_id):
         return jsonify({"message": "Left game successfully"}), 200
     return jsonify({"error": "You are not in this game"}), 400
 
+
 # --- SOCKET.IO REAL-TIME LOGIC ---
 @socketio.on("join_game")
 def handle_join(data):
@@ -224,34 +234,34 @@ def handle_join(data):
             games[room] = {
                 "board": chess.Board(),
                 "white": None,
-                "black": None
+                "black": None,
+                "white_time": db_game.timer,
+                "black_time": db_game.timer,
+                "increment": db_game.increment,
             }
         game = games[room]
+        player_id = request.side
 
         if game["white"] is None:
-            game["white"] = request.sid
-            emit("assign_color", "w")
+            game["white"] = player_id
+            emit("assign_role", "white")
 
-            if game["black"] is not None:
-                emit("game_ready", {"ready": True}, to=room)
-            else:
-                emit("player_status", {"ready": False, "msg": "Waiting for Opponent..."})
-
-        elif game["black"] is None and game["white"] != request.sid:
-            game["black"] = request.sid
-            emit("assign_color", "b")
-            emit("game_ready", {"ready": True}, to=room)
-
+        elif game["black"] is None and game["white"] != player_id:
+            game["black"] = player_id
+            emit("assign_role", "black")
             db_game.status = "full"
             db.session.commit()
 
-        elif game["white"] is not None and game["black"] is not None:
-            emit("game_ready", {"ready": True})
+        elif player_id != game["white"] and player_id != game["black"]:
+            emit("assign_role", "spectator")
 
         emit("move_update", game["board"].fen())
 
     except Exception as e:
         print(f"Socket Join Error: {e}")
+    finally:
+        db.session.remove()
+
 
 @socketio.on("make_move")
 def handle_move(data):
@@ -290,7 +300,6 @@ def handle_move(data):
 @socketio.on("disconnect")
 def handle_disconnect():
     try:
-        # The '# type: ignore' tells Pyright to stop complaining!
         player_id = request.sid  # type: ignore
 
         for room, game in list(games.items()):
@@ -301,19 +310,18 @@ def handle_disconnect():
                     to=room,
                 )
 
-                # Just empty the RAM seat so they can reconnect later
                 if game["white"] == player_id:
                     game["white"] = None
                 else:
                     game["black"] = None
 
+                if game["white"] is None and game["black"] is None:
+                    del game[room]
+                    print(f"Room {room} was empty and has been deleted.")
                 break
 
     except Exception as e:
         print(f"Disconnect Error: {e}")
-    finally:
-        # Your brilliant database cleanup stays right here!
-        db.session.remove()
 
 
 # --- STARTUP ---

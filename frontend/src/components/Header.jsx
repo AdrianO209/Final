@@ -66,34 +66,35 @@ function Header({ isLoggedIn, setIsLoggedIn }) {
             {isLoggedIn ? (
               <>
                 {!isMatchPage && (
-                  <Typography
-                    variant="h4"
-                    sx={{
-                      color: "white",
-                      fontWeight: 500,
-                      opacity: 0.9,
-                      ml: 2,
-                      mt: 2,
-                      textTransform: "capitalize",
-                    }}
-                  >
-                    Welcome Back, {userName}
-                  </Typography>
+                  <>
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        color: "white",
+                        fontWeight: 500,
+                        opacity: 0.9,
+                        ml: 2,
+                        mt: 2,
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      Welcome Back, {userName}
+                    </Typography>
+                    <Box sx={{ ml: "auto" }}>
+                      <Button
+                        onClick={handleSignOut}
+                        sx={{
+                          color: "white",
+                          fontWeight: "bold",
+                          mt: 2,
+                          "&:hover": { bgcolor: "rgba(255, 255, 255, 0.1)" },
+                        }}
+                      >
+                        Sign Out
+                      </Button>
+                    </Box>
+                  </>
                 )}
-
-                <Box sx={{ ml: "auto" }}>
-                  <Button
-                    onClick={handleSignOut}
-                    sx={{
-                      color: "white",
-                      fontWeight: "bold",
-                      mt: 2,
-                      "&:hover": { bgcolor: "rgba(255, 255, 255, 0.1)" },
-                    }}
-                  >
-                    Sign Out
-                  </Button>
-                </Box>
               </>
             ) : null}
           </Toolbar>

@@ -23,7 +23,6 @@ function GameConfig({ activeTabIndex }) {
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [success, setSuccess] = useState(false);
-  const [gameId, setGameId] = useState("");
   const navigate = useNavigate();
 
   const handleTimeChange = (event, newTime) => {
@@ -61,6 +60,7 @@ function GameConfig({ activeTabIndex }) {
         },
         body: JSON.stringify({
           name: name,
+          timer: timer,
           increment: increment,
         }),
       });
@@ -71,11 +71,6 @@ function GameConfig({ activeTabIndex }) {
         setError(false);
         setSuccess(true);
         setTimeout(() => setSuccess(false), 10000);
-        setGameId(result.Game_id);
-
-        sessionStorage.setItem("startingSeconds", timer);
-        sessionStorage.setItem("increment", increment);
-
         setName("");
         setTimer(600);
         setIncrement(0);
