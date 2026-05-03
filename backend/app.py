@@ -1,8 +1,8 @@
-import os
-import chess
 import eventlet
 
 eventlet.monkey_patch()
+import os
+import chess
 from flask import Flask, jsonify, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_admin import Admin
