@@ -213,6 +213,7 @@ def leave_match(match_id):
 @socketio.on("join_game")
 def handle_join(data):
     try:
+        from flask_jwt_extended import decode_token
         room = str(data["room"])
         join_room(room)
 
@@ -220,38 +221,46 @@ def handle_join(data):
         if not db_game:
             emit("error", "Game not found")
             return
+        
         if room not in games:
             games[room] = {
                 "board": chess.Board(),
                 "white": None,
                 "black": None
             }
-        game = games[room]
 
-        if game["white"] is None:
+        game = games[room]
+        token = data.get("token")
+
+        try:
+            decoded = decode_token(token)
+            user_id = decoded["sub"]
+        except Exception:
+            user_id = None
+        
+        if user_id and str(db_game.white_player_id) == str(user_id):
             game["white"] = request.sid
             emit("assign_color", "w")
-
             if game["black"] is not None:
                 emit("game_ready", {"ready": True}, to=room)
             else:
                 emit("player_status", {"ready": False, "msg": "Waiting for Opponent..."})
-
-        elif game["black"] is None and game["white"] != request.sid:
+        
+        elif user_id and str(db_game.black_player_id) == str(user_id):
             game["black"] = request.sid
             emit("assign_color", "b")
             emit("game_ready", {"ready": True}, to=room)
-
             db_game.status = "full"
             db.session.commit()
 
-        elif game["white"] is not None and game["black"] is not None:
+        else:
             emit("game_ready", {"ready": True})
 
         emit("move_update", game["board"].fen())
 
     except Exception as e:
         print(f"Socket Join Error: {e}")
+
 
 @socketio.on("make_move")
 def handle_move(data):
