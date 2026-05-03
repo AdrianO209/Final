@@ -32,7 +32,7 @@ function ChessGame() {
     }
 
     const token = localStorage.getItem("chess_token");
-    socket.emit("join_game", {room: matchId, token: token});
+    socket.emit("join_game", { room: matchId, token: token });
 
     socket.on("assign_color", (color) => {
       setMyColor(color);
@@ -69,6 +69,13 @@ function ChessGame() {
 
     socket.on("error", (msg) => {
       console.error("Server Error:", msg);
+    });
+
+    socket.on("player_left", (data) => {
+      setStatus("Opponent left the game.");
+      setGameReady(false);
+
+      alert(data.msg);
     });
 
     return () => {

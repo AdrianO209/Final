@@ -214,21 +214,28 @@ def join_match(match_id):
 @app.route("/leave/<int:match_id>", methods=["POST"])
 @jwt_required()
 def leave_match(match_id):
-    user_id = get_jwt_identity()
-    game = GameSession.query.get(match_id)
+    try:
+        user_id = get_jwt_identity()
 
-    if not game:
-        return jsonify({"error": "Game not found"}), 404
-    if str(game.white_player_id) == str(user_id):
-        db.session.delete(game)
-        db.session.commit()
-        return jsonify({"message": "Game deleted"}), 200
-    if str(game.black_player_id) == str(user_id):
-        game.black_player_id = None
-        game.status = "active"
-        db.session.commit()
-        return jsonify({"message": "Left game successfully"}), 200
-    return jsonify({"error": "You are not in this game"}), 400
+        # 1. (Optional) Update DB status to 'finished' or 'aborted'
+        db_game = GameSession.query.get(match_id)
+        if db_game and db_game.status != "finished":
+            db_game.status = "finished"
+            db.session.commit()
+
+        # 2. 🚀 THE IMPORTANT PART: Tell the opponent
+        # We emit a "player_left" event to everyone in that match room
+        socketio.emit(
+            "player_left",
+            {"msg": "Opponent has left the match.", "leaver_id": user_id},
+            to=str(match_id),
+        )
+
+        return jsonify({"msg": "Successfully left the match"}), 200
+
+    except Exception as e:
+        print(f"Leave Error: {e}")
+        return jsonify({"error": "Failed to leave cleanly"}), 500
 
 
 # --- SOCKET.IO REAL-TIME LOGIC ---
