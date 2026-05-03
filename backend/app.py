@@ -145,16 +145,21 @@ def fetchUser():
 @app.route("/fetch", methods=["GET"])
 @jwt_required()
 def fetch():
-    totalMatches = GameSession.query.all()
-    gameList = [
-        {
-            "id": i.id,
-            "name": i.name,
-            "status": i.status,
-        }
-        for i in totalMatches
-    ]
-    return jsonify(gameList), 200
+    try:
+        totalMatches = GameSession.query.all()
+        gameList = [
+            {
+                "id": i.id,
+                "name": i.name,
+                "status": i.status,
+            }
+            for i in totalMatches
+        ]
+        return jsonify(gameList), 200
+
+    except Exception as e:
+        print(f"Fetch Error : {e}")
+        return jsonify({"error": "Database sync error"}), 500
 
 
 @app.route("/games", methods=["POST"])
