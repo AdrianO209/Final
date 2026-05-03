@@ -16,6 +16,7 @@ from flask_jwt_extended import (
     create_access_token,
     jwt_required,
     get_jwt_identity,
+    decode_token
 )
 from dotenv import load_dotenv
 
@@ -50,7 +51,13 @@ allowed_origins = [
 ]
 
 CORS(app, resources={r"/*": {"origins": allowed_origins}}, supports_credentials=True)
-socketio = SocketIO(app, cors_allowed_origins=allowed_origins)
+socketio = SocketIO(
+    app,
+    cors_allowed_origins=allowed_origins,
+    async_mode='eventlet',
+    logger=True,
+    engineio_logger = True
+)
 
 
 # --- MODELS ---
@@ -213,8 +220,7 @@ def leave_match(match_id):
 @socketio.on("join_game")
 def handle_join(data):
     try:
-        from flask_jwt_extended import decode_token
-        room = str(data["room"])
+        room = str(data.get("room"))
         join_room(room)
 
         db_game = GameSession.query.get(int(room))
@@ -231,35 +237,45 @@ def handle_join(data):
 
         game = games[room]
         token = data.get("token")
+        user_id = None
 
-        try:
-            decoded = decode_token(token)
-            user_id = decoded["sub"]
-        except Exception:
-            user_id = None
-        
-        if user_id and str(db_game.white_player_id) == str(user_id):
+        if token:
+            try:
+                with app.app_context():
+                    decoded = decode_token(token)
+                    user_id = decoded.get("sub") or decoded.get("identity")
+            except Exception as e:
+                print(f"Token decode failed for room {room}: {e}")
+        is_white = user_id and str(db_game.white_player_id) == str(user_id)
+        is_black = user_id and str(db_game.black_player_id) == str(user_id)
+
+        if is_white:
             game["white"] = request.sid
             emit("assign_color", "w")
-            if game["black"] is not None:
-                emit("game_ready", {"ready": True}, to=room)
-            else:
-                emit("player_status", {"ready": False, "msg": "Waiting for Opponent..."})
-        
-        elif user_id and str(db_game.black_player_id) == str(user_id):
+            print(f"WHITE Joined - User {user_id}, SID {request.sid}")
+        elif is_black:
             game["black"] = request.sid
             emit("assign_color", "b")
-            emit("game_ready", {"ready": True}, to=room)
+            print(f"BLACK Joined - User {user_id}, SID {request.sid}")
+        else:
+            emit("error", {"msg": "You are not a player in this game"})
+            return
+        
+        is_ready = bool(game["white"] and game["black"])
+
+        if is_ready:
             db_game.status = "full"
             db.session.commit()
-
+            socketio.emit("game_ready", {"ready": True}, to=room)
+            socketio.emit("player_status", {"ready": True, "msg": "Both players connected successfully"}, to=room)
         else:
-            emit("game_ready", {"ready": True})
+            socketio.emit("player_status", {"ready": False, "msg": "Waiting for Opponent..."}, to=room)
 
-        emit("move_update", game["board"].fen())
+        emit("move_update", game["board"].fen(), to=room)
 
     except Exception as e:
-        print(f"Socket Join Error: {e}")
+        print(f"Socket Join Error Room {data.get('room')}: {e}")
+        emit("error", {"msg": "Internal Server Error."})
 
 
 @socketio.on("make_move")
