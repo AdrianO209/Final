@@ -20,7 +20,7 @@ function ChessGame() {
   const [moveFrom, setMoveFrom] = useState("");
   const [optionSquares, setOptionSquares] = useState({});
   const [status, setStatus] = useState("White to move");
-  const { matchId } = useParams();
+  const { matchID } = useParams();
   const [myColor, setMyColor] = useState(null);
   const myColorRef = useRef(null);
   const [gameReady, setGameReady] = useState(false);
@@ -32,7 +32,7 @@ function ChessGame() {
     }
 
     const token = localStorage.getItem("chess_token");
-    socket.emit("join_game", { room: matchId, token: token });
+    socket.emit("join_game", { room: String(matchID), token: token });
 
     socket.on("assign_color", (color) => {
       setMyColor(color);
@@ -72,22 +72,21 @@ function ChessGame() {
     });
 
     socket.on("player_left", (data) => {
-      setStatus("Opponent left the game.");
-      setGameReady(false);
-
-      alert(data.msg);
+      navigate("/dashboard");
     });
 
     return () => {
-      socket.off("join_game");
       socket.off("assign_color");
       socket.off("move_update");
       socket.off("game_ready");
       socket.off("player_status");
       socket.off("error");
-      socket.disconnect();
+      socket.off("player_left");
+      if (socket.connected) {
+        socket.disconnect();
+      }
     };
-  }, [matchId]);
+  }, [matchID]);
 
   function getMoveOptions(square) {
     const moves = game.current.moves({ square, verbose: true });
@@ -148,7 +147,7 @@ function ChessGame() {
     const moveString = `${moveFrom}${square}${isPromotion ? "q" : ""}`;
 
     socket.emit("make_move", {
-      room: matchId,
+      room: matchID,
       move: moveString,
     });
 
@@ -157,14 +156,17 @@ function ChessGame() {
   }
 
   const handleLeaveGame = async () => {
+    navigate("/dashboard");
     const token = localStorage.getItem("chess_token");
-    await fetch(`${API_URL}/leave/${matchId}`, {
+    await fetch(`${API_URL}/leave/${matchID}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    navigate("/dashboard");
+    if (socket.connected) {
+      socket.disconnect();
+    }
   };
 
   const chessboardOptions = {
