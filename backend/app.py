@@ -217,14 +217,11 @@ def leave_match(match_id):
     try:
         user_id = get_jwt_identity()
 
-        # 1. (Optional) Update DB status to 'finished' or 'aborted'
         db_game = GameSession.query.get(match_id)
         if db_game and db_game.status != "finished":
             db_game.status = "finished"
             db.session.commit()
 
-        # 2. 🚀 THE IMPORTANT PART: Tell the opponent
-        # We emit a "player_left" event to everyone in that match room
         socketio.emit(
             "player_left",
             {"msg": "Opponent has left the match.", "leaver_id": user_id},

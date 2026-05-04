@@ -22,4 +22,4 @@ ENV PORT=8080
 
 # 7. Start the app using Gunicorn
 # "app:app" means: look in app.py for the variable named 'app'
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:$PORT app:app"]
+CMD ["sh", "-c", "gunicorn --wroker-class eventlet -w 1 --bind 0.0.0.0:$PORT app:app"]
