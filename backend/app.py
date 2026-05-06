@@ -360,7 +360,7 @@ def handle_disconnect():
                     game["black"] = None
 
                 if game["white"] is None and game["black"] is None:
-                    del game[room]
+                    del games[room]
                     print(f"Room {room} was empty and has been deleted.")
                 break
 
