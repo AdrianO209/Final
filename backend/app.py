@@ -286,11 +286,15 @@ def handle_join(data):
         if game["white"] and game["black"]:
             db_game.status = "full"
             db.session.commit()
-            socketio.emit("game_ready", {
-                "ready": True,
-                "white_time": game["white_time"],
-                "black_time": game["black_time"]
-                }, to=room)
+            socketio.emit(
+                "game_ready",
+                {
+                    "ready": True,
+                    "white_time": game["white_time"],
+                    "black_time": game["black_time"],
+                },
+                to=room,
+            )
             socketio.emit(
                 "player_status",
                 {"ready": True, "msg": "Both players connected successfully"},
@@ -366,6 +370,13 @@ def handle_disconnect():
                 if game["white"] is None and game["black"] is None:
                     del games[room]
                     print(f"Room {room} was empty and has been deleted.")
+
+                    db_game = GameSession.query.get(int(room))
+                    if db_game:
+                        db.session.delete(db_game)
+                        db.session.commit()
+                        print(f"Match {room} permanently erased from database.")
+
                 break
 
     except Exception as e:
