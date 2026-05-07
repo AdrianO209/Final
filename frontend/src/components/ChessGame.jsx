@@ -7,6 +7,7 @@ import {
   Paper,
   Button,
   CircularProgress,
+  getImageListItemBarUtilityClass,
 } from "@mui/material";
 import { io } from "socket.io-client";
 import { useParams, useNavigate } from "react-router-dom";
@@ -266,43 +267,46 @@ function ChessGame() {
             )}
           </Box>
         </Box>
-
         <Button variant="outlined" color="error" onClick={handleLeaveGame}>
           Leave Match
         </Button>
       </Paper>
-      <Box sx={{ width: { xs: "90vw", sm: 500, md: 600 } }}>
+      <Box sx={{ width: { xs: "90vw", sm: 500, md: 600 }}}>
         {gameReady && (
-          <Box sx = {{
+          <Box sx={{
             display: "flex",
             justifyContent: "space-between",
+            mb: 2,
             px: 1
           }}>
             <Typography sx={{
               color: game.current.turn() === "b" ? "#fff" : "#888",
               fontWeight: "bold",
-              fontSize: "1.2rem",
+              fontSize: "1.25rem",
               backgroundColor: "#312e2b",
-              px: 2,
-              py: 0.5,
+              px: 2.5,
+              py: 0.75,
               borderRadius: 1
             }}>
-              {formatTime(blackTime)}
+              ⚫{formatTime(blackTime)}
             </Typography>
-            <Typography sx = {{
+            <Typography sx={{
               color: game.current.turn() === "w" ? "#fff" : "#888",
               fontWeight: "bold",
-              fontSize: "1.2rem",
+              fontSize: "1.25rem",
               backgroundColor: "#312e2b",
-              px: 2,
-              py: 0.5,
+              px: 2.5,
+              py: 0.75,
               borderRadius: 1
             }}>
-              {formatTime(whiteTime)}
+              ⚪{formatTime(whiteTime)}
             </Typography>
           </Box>
         )}
-        <Chessboard options={chessboardOptions} />
+
+        <Box sx={{ fontSize: 0 }}>
+          <Chessboard options={chessboardOptions} />
+        </Box>
       </Box>
     </Box>
   );
