@@ -276,7 +276,6 @@ function ChessGame() {
           <Box sx = {{
             display: "flex",
             justifyContent: "space-between",
-            mb: 1,
             px: 1
           }}>
             <Typography sx={{
