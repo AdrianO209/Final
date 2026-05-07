@@ -25,6 +25,9 @@ function ChessGame() {
   const myColorRef = useRef(null);
   const [gameReady, setGameReady] = useState(false);
   const navigate = useNavigate();
+  const [whiteTime, setWhiteTime] = useState(null);
+  const [blackTime, setBlackTime] = useState(null);
+  const timerRef = useRef(null);
 
   useEffect(() => {
     if (!socket.connected) {
@@ -61,6 +64,8 @@ function ChessGame() {
     });
     socket.on("game_ready", (data) => {
       setGameReady(data.ready);
+      setWhiteTime(data.white_time);
+      setBlackTime(data.black_time);
     });
 
     socket.on("player_status", (data) => {
@@ -87,6 +92,37 @@ function ChessGame() {
       }
     };
   }, [matchID]);
+
+  useEffect(() => {
+    if (!gameReady) return;
+
+    clearInterval(timerRef.current);
+
+    timerRef.current = setInterval(() => {
+      const turn = game.current.turn();
+      if (turn === "w") {
+        setWhiteTime(prev => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current);
+            setStatus("Black wins on time!");
+            return 0;
+          }
+          return prev - 1;
+        });
+      } else {
+        setBlackTime(prev => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current);
+            setStatus("White wins on time!");
+            return 0;
+          }
+          return prev - 1;
+        });
+      }
+    }, 1000);
+
+    return () => clearInterval(timerRef.current);
+  }, [gameReady, fen]);
 
   function getMoveOptions(square) {
     const moves = game.current.moves({ square, verbose: true });
@@ -178,6 +214,13 @@ function ChessGame() {
     arePiecesDraggable: false,
   };
 
+  const formatTime = (seconds) => {
+    if (seconds == null) return "--:--";
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }
+
   return (
     <Box
       sx={{
@@ -229,6 +272,37 @@ function ChessGame() {
         </Button>
       </Paper>
       <Box sx={{ width: { xs: "90vw", sm: 500, md: 600 } }}>
+        {gameReady && (
+          <Box sx = {{
+            display: "flex",
+            justifyContent: "space-between",
+            mb: 1,
+            px: 1
+          }}>
+            <Typography sx={{
+              color: game.current.turn() === "b" ? "#fff" : "#888",
+              fontWeight: "bold",
+              fontSize: "1.2rem",
+              backgroundColor: "#312e2b",
+              px: 2,
+              py: 0.5,
+              borderRadius: 1
+            }}>
+              {formatTime(blackTime)}
+            </Typography>
+            <Typography sx = {{
+              color: game.current.turn() === "w" ? "#fff" : "#888",
+              fontWeight: "bold",
+              fontSize: "1.2rem",
+              backgroundColor: "#312e2b",
+              px: 2,
+              py: 0.5,
+              borderRadius: 1
+            }}>
+              {formatTime(whiteTime)}
+            </Typography>
+          </Box>
+        )}
         <Chessboard options={chessboardOptions} />
       </Box>
     </Box>
