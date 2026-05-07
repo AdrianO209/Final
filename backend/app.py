@@ -253,9 +253,9 @@ def handle_join(data):
                 "board": chess.Board(),
                 "white": None,
                 "black": None,
-                "white_time": db_game.timer,
-                "black_time": db_game.timer,
-                "increment": db_game.increment,
+                "white_time": db_game.timer or 600,
+                "black_time": db_game.timer or 600,
+                "increment": db_game.increment or 0,
             }
 
         game = games[room]
@@ -286,7 +286,11 @@ def handle_join(data):
         if game["white"] and game["black"]:
             db_game.status = "full"
             db.session.commit()
-            socketio.emit("game_ready", {"ready": True}, to=room)
+            socketio.emit("game_ready", {
+                "ready": True,
+                "white_time": game["white_time"],
+                "black_time": game["black_time"]
+                }, to=room)
             socketio.emit(
                 "player_status",
                 {"ready": True, "msg": "Both players connected successfully"},
