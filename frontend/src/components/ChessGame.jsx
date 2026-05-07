@@ -29,6 +29,8 @@ function ChessGame() {
   const [whiteTime, setWhiteTime] = useState(null);
   const [blackTime, setBlackTime] = useState(null);
   const timerRef = useRef(null);
+  const [gameOver, setGameOver] = useState(false);
+  const gameOverRef = useRef(false);
 
   useEffect(() => {
     if (!socket.connected) {
@@ -52,11 +54,13 @@ function ChessGame() {
       setOptionSquares({});
 
       if (game.current.isGameOver()) {
-        setStatus(
-          game.current.isCheckmate()
-            ? "Checkmate! Game Over."
-            : "Game Over (Draw)",
-        );
+          setGameOver(true);
+          gameOverRef.current = true;
+          setStatus (
+            game.current.isCheckmate()
+              ? `Checkmate! ${game.current.turn() === "w" ? "Black" : "White"} wins!`
+              : "Game Over (Draw)",
+          );
       } else {
         const isMyTurn = game.current.turn() === myColorRef.current;
         const turnLabel = game.current.turn() === "w" ? "White" : "Black";
@@ -100,12 +104,18 @@ function ChessGame() {
     clearInterval(timerRef.current);
 
     timerRef.current = setInterval(() => {
+      if (gameOverRef.current) {
+        clearInterval(timerRef.current);
+        return;
+      }
       const turn = game.current.turn();
       if (turn === "w") {
         setWhiteTime(prev => {
           if (prev <= 1) {
             clearInterval(timerRef.current);
             setStatus("Black wins on time!");
+            setGameOver(true);
+            gameOverRef.current = true;
             return 0;
           }
           return prev - 1;
@@ -115,6 +125,8 @@ function ChessGame() {
           if (prev <= 1) {
             clearInterval(timerRef.current);
             setStatus("White wins on time!");
+            setGameOver(true);
+            gameOverRef.current = true;
             return 0;
           }
           return prev - 1;
@@ -123,7 +135,7 @@ function ChessGame() {
     }, 1000);
 
     return () => clearInterval(timerRef.current);
-  }, [gameReady, fen]);
+  }, [gameReady]);
 
   function getMoveOptions(square) {
     const moves = game.current.moves({ square, verbose: true });
@@ -151,6 +163,7 @@ function ChessGame() {
   }
 
   function onSquareClick({ square, piece }) {
+    if (gameOver) return;
     if (!gameReady) return;
     if (!myColor || game.current.turn() !== myColor) return;
 
