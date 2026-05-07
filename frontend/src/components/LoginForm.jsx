@@ -57,6 +57,7 @@ function LoginForm({ setIsLoggedIn }) {
         setIsLoggedIn(true);
         sessionStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("chess_token", result.token);
+        localStorage.setItem("name", result.username);
         navigate("/dashboard");
       }
     } finally {

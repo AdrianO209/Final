@@ -126,7 +126,13 @@ def login():
     # Utilizing the custom checkPassword function from the model
     if user and user.checkPassword(data.get("password")):
         access_token = create_access_token(identity=str(user.id))
-        return jsonify({"message": "Login successful!", "token": access_token}), 200
+        return jsonify(
+            {
+                "message": "Login successful!",
+                "token": access_token,
+                "username": user.username,
+            }
+        ), 200
 
     return jsonify({"error": "Invalid credentials!"}), 400
 
