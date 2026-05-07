@@ -85,7 +85,7 @@ function ChessGame() {
     });
 
     socket.on("player_left", (data) => {
-      setOpponentLeft;
+      setOpponentLeft(true);
     });
 
     return () => {
