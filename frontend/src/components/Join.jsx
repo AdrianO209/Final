@@ -60,24 +60,24 @@ function Join({ activeTabIndex }) {
     }
   }, [activeTabIndex]);
 
-const joinGame = async (matchID) => {
-  const token = localStorage.getItem("chess_token");
-  const response = await fetch(`${API_BASE_URL}/join/${matchID}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const joinGame = async (matchID) => {
+    const token = localStorage.getItem("chess_token");
+    const response = await fetch(`${API_BASE_URL}/join/${matchID}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-  const result = await response.json();
+    const result = await response.json();
 
-  if (response.ok) {
-    console.log("Success!", matchID);
-    navigate(`/game/${matchID}`);
-  } else {
-    return console.error("Join failed:", result.error);
-  }
-};
+    if (response.ok) {
+      console.log("Success!", matchID);
+      navigate(`/game/${matchID}`);
+    } else {
+      return console.error("Join failed:", result.error);
+    }
+  };
 
   return (
     <Box>
@@ -137,7 +137,8 @@ const joinGame = async (matchID) => {
                     key={current.id}
                     divider
                     secondaryAction={
-                      current.status === "active" || current.status === "waiting" ? (
+                      current.status === "active" ||
+                      current.status === "waiting" ? (
                         <Tooltip title="Join">
                           <IconButton
                             sx={{ mr: 2 }}
@@ -146,7 +147,7 @@ const joinGame = async (matchID) => {
                             <AddIcon />
                           </IconButton>
                         </Tooltip>
-                      ) : (
+                      ) : current.status === "full" ? (
                         <Tooltip title="Spectate">
                           <IconButton
                             sx={{ mr: 2 }}
@@ -155,6 +156,13 @@ const joinGame = async (matchID) => {
                             <VisibilityIcon />
                           </IconButton>
                         </Tooltip>
+                      ) : (
+                        <Typography
+                          variant="caption"
+                          sx={{ mr: 3, color: "text.secondary" }}
+                        >
+                          Finished
+                        </Typography>
                       )
                     }
                   >
