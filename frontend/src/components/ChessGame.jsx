@@ -30,7 +30,9 @@ function ChessGame() {
   const [blackTime, setBlackTime] = useState(null);
   const timerRef = useRef(null);
   const [gameOver, setGameOver] = useState(false);
+  const [opponentLeft, setOpponentLeft] = useState(false);
   const gameOverRef = useRef(false);
+  const incremenetRef = useRef(0);
 
   useEffect(() => {
     if (!socket.connected) {
@@ -54,13 +56,13 @@ function ChessGame() {
       setOptionSquares({});
 
       if (game.current.isGameOver()) {
-          setGameOver(true);
-          gameOverRef.current = true;
-          setStatus (
-            game.current.isCheckmate()
-              ? `Checkmate! ${game.current.turn() === "w" ? "Black" : "White"} wins!`
-              : "Game Over (Draw)",
-          );
+        setGameOver(true);
+        gameOverRef.current = true;
+        setStatus(
+          game.current.isCheckmate()
+            ? `Checkmate! ${game.current.turn() === "w" ? "Black" : "White"} wins!`
+            : "Game Over (Draw)",
+        );
       } else {
         const isMyTurn = game.current.turn() === myColorRef.current;
         const turnLabel = game.current.turn() === "w" ? "White" : "Black";
@@ -71,6 +73,7 @@ function ChessGame() {
       setGameReady(data.ready);
       setWhiteTime(data.white_time);
       setBlackTime(data.black_time);
+      incremenetRef.current = data.incremenetRef;
     });
 
     socket.on("player_status", (data) => {
@@ -82,7 +85,7 @@ function ChessGame() {
     });
 
     socket.on("player_left", (data) => {
-      navigate("/dashboard");
+      setOpponentLeft;
     });
 
     return () => {
@@ -110,7 +113,7 @@ function ChessGame() {
       }
       const turn = game.current.turn();
       if (turn === "w") {
-        setWhiteTime(prev => {
+        setWhiteTime((prev) => {
           if (prev <= 1) {
             clearInterval(timerRef.current);
             setStatus("Black wins on time!");
@@ -121,7 +124,7 @@ function ChessGame() {
           return prev - 1;
         });
       } else {
-        setBlackTime(prev => {
+        setBlackTime((prev) => {
           if (prev <= 1) {
             clearInterval(timerRef.current);
             setStatus("White wins on time!");
@@ -233,7 +236,7 @@ function ChessGame() {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-  }
+  };
 
   return (
     <Box
@@ -261,7 +264,11 @@ function ChessGame() {
           {!gameReady && <CircularProgress size={24} sx={{ color: "#aaa" }} />}
           <Box>
             <Typography variant="h6" sx={{ margin: 0 }}>
-              {!gameReady ? "Waiting for opponent..." : status}
+              {opponentLeft
+                ? "Opponent Disconnect"
+                : !gameReady
+                  ? "Waiting for opponent..."
+                  : status}
             </Typography>
             {myColor ? (
               <Typography
@@ -284,34 +291,40 @@ function ChessGame() {
           Leave Match
         </Button>
       </Paper>
-      <Box sx={{ width: { xs: "90vw", sm: 500, md: 600 }}}>
+      <Box sx={{ width: { xs: "90vw", sm: 500, md: 600 } }}>
         {gameReady && (
-          <Box sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            mb: 2,
-            px: 1
-          }}>
-            <Typography sx={{
-              color: game.current.turn() === "b" ? "#fff" : "#888",
-              fontWeight: "bold",
-              fontSize: "1.25rem",
-              backgroundColor: "#312e2b",
-              px: 2.5,
-              py: 0.75,
-              borderRadius: 1
-            }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              mb: 2,
+              px: 1,
+            }}
+          >
+            <Typography
+              sx={{
+                color: game.current.turn() === "b" ? "#fff" : "#888",
+                fontWeight: "bold",
+                fontSize: "1.25rem",
+                backgroundColor: "#312e2b",
+                px: 2.5,
+                py: 0.75,
+                borderRadius: 1,
+              }}
+            >
               ⚫{formatTime(blackTime)}
             </Typography>
-            <Typography sx={{
-              color: game.current.turn() === "w" ? "#fff" : "#888",
-              fontWeight: "bold",
-              fontSize: "1.25rem",
-              backgroundColor: "#312e2b",
-              px: 2.5,
-              py: 0.75,
-              borderRadius: 1
-            }}>
+            <Typography
+              sx={{
+                color: game.current.turn() === "w" ? "#fff" : "#888",
+                fontWeight: "bold",
+                fontSize: "1.25rem",
+                backgroundColor: "#312e2b",
+                px: 2.5,
+                py: 0.75,
+                borderRadius: 1,
+              }}
+            >
               ⚪{formatTime(whiteTime)}
             </Typography>
           </Box>

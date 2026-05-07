@@ -222,11 +222,11 @@ def leave_match(match_id):
             db_game.status = "finished"
             db.session.commit()
 
-        socketio.emit(
-            "player_left",
-            {"msg": "Opponent has left the match.", "leaver_id": user_id},
-            to=str(match_id),
-        )
+            socketio.emit(
+                "player_left",
+                {"msg": "Opponent has left the match.", "leaver_id": user_id},
+                to=str(match_id),
+            )
 
         return jsonify({"msg": "Successfully left the match"}), 200
 
