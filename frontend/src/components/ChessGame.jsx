@@ -55,6 +55,12 @@ function ChessGame() {
       setFen(newFen);
       setOptionSquares({});
 
+      const newTurn = game.current.turn();
+
+      if (newTurn === "w") {
+        setBlackTime((prev) => prev + incremenetRef.current);
+      } else setWhiteTime((prev) => prev + incremenetRef.current);
+
       if (game.current.isGameOver()) {
         setGameOver(true);
         gameOverRef.current = true;

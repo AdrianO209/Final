@@ -2,6 +2,7 @@ import eventlet
 
 eventlet.monkey_patch()
 import os
+from datetime import timedelta
 import chess
 from flask import Flask, jsonify, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
@@ -29,6 +30,7 @@ app.config["JWT_SECRET_KEY"] = os.environ.get(
     "JWT_SECRET_KEY", "super-secret-fallback-key"
 )
 app.config["JWT_TOKEN_LOCATION"] = ["headers"]
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
 app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["BCRYPT_LOG_ROUNDS"] = 10

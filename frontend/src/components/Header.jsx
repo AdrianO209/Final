@@ -15,8 +15,7 @@ function Header({ isLoggedIn, setIsLoggedIn }) {
   const navigate = useNavigate();
   const location = useLocation();
   const API_BASE_URL = "https://backend-production-5b92.up.railway.app";
-  const [userName, setUserName] = useState("");
-
+  const [userName, setUserName] = useState(null);
   const isMatchPage = location.pathname.startsWith("/game");
 
   const handleSignOut = () => {
@@ -26,6 +25,12 @@ function Header({ isLoggedIn, setIsLoggedIn }) {
   };
 
   useEffect(() => {
+    const savedName = localStorage.getItem("username");
+
+    if (savedName) {
+      setUserName(savedName);
+    }
+
     const fetchUserName = async () => {
       const token = localStorage.getItem("chess_token");
       if (!token) return;
@@ -42,11 +47,14 @@ function Header({ isLoggedIn, setIsLoggedIn }) {
 
       if (response.ok) {
         setUserName(result.username);
+      } else {
+        localStorage.removeItem("chess_token");
+        localStorage.removeItem("username");
       }
     };
 
     fetchUserName();
-  }, [isLoggedIn]);
+  }, []);
 
   return (
     <Grow in={true} timeout={1000}>
