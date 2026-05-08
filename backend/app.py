@@ -107,7 +107,7 @@ def register():
     password = data.get("password")
 
     if not username or not password:
-        rteturn jsonify({"error": "Username and password are required"}), 400
+        return jsonify({"error": "Username and password are required"}), 400
 
     existingUser = UserCredentials.query.filter_by(username=username).first()
     if existingUser is None:
@@ -300,7 +300,7 @@ def handle_join(data):
                     "ready": True,
                     "white_time": game["white_time"],
                     "black_time": game["black_time"],
-                    "increment": game["increment"]
+                    "increment": game["increment"],
                 },
                 to=room,
             )
