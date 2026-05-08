@@ -227,17 +227,26 @@ def leave_match(match_id):
         user_id = get_jwt_identity()
 
         db_game = GameSession.query.get(match_id)
-        if db_game and db_game.status != "finished":
-            db_game.status = "finished"
-            db.session.commit()
+        if not db_game:
+            return jsonify({"error": "Game not found"}), 404
 
-            socketio.emit(
-                "player_left",
-                {"msg": "Opponent has left the match.", "leaver_id": user_id},
-                to=str(match_id),
-            )
+        is_white = str(db_game.white_player_id) == user_id
+        is_black = str(db_game.black_player_id) == user_id
 
-        return jsonify({"msg": "Successfully left the match"}), 200
+        if is_white or is_black:
+            if db_game.status != "finished":
+                db_game.status = "finished"
+                db.session.commit()
+
+                socketio.emit(
+                    "player_left",
+                    {"msg": "Opponent has left the match.", "leaver_id": user_id},
+                    to=str(match_id),
+                )
+            return jsonify({"msg": "Successfully left the match (Player)"}), 200
+
+        else:
+            return jsonify({"msg": "Successfully left the match (Spectator)"}), 200
 
     except Exception as e:
         print(f"Leave Error: {e}")
