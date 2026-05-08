@@ -4,6 +4,7 @@ eventlet.monkey_patch()
 import os
 from datetime import timedelta
 import chess
+import time
 from flask import Flask, jsonify, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_admin import Admin
@@ -264,6 +265,7 @@ def handle_join(data):
                 "white_time": db_game.timer or 600,
                 "black_time": db_game.timer or 600,
                 "increment": db_game.increment or 0,
+                "last_move_time": time.time(),
             }
 
         game = games[room]
@@ -300,7 +302,6 @@ def handle_join(data):
                     "ready": True,
                     "white_time": game["white_time"],
                     "black_time": game["black_time"],
-                    "increment": game["increment"],
                 },
                 to=room,
             )
@@ -345,11 +346,46 @@ def handle_move(data):
             emit("error", "Not your turn!")
             return
 
+        move = chess.Move.from_uci(move_data)
+
+        if move in board.legal_moves:
+            current_time = time.time()
+            elapsed_seconds = current_time - game["last_move_time"]
+
+            if board.turn == chess.WHITE:
+                game["white_time"] -= elapsed_seconds
+                game["white_time"] += game["increment"]
+            else:
+                game["black_time"] -= elapsed_seconds
+                game["black_time"] += game["increment"]
+
+            game["last_move_time"] = current_time
+
+            board.push(move)
+
+            emit(
+                "move_update",
+                {
+                    "fen": board.fen(),
+                    "white_time": game["white_time"],
+                    "black_time": game["black_time"],
+                },
+                to=room,
+            )
+
         # Move execution
         move = chess.Move.from_uci(move_data)
         if move in board.legal_moves:
             board.push(move)
-            emit("move_update", board.fen(), to=room)
+            emit(
+                "move_update",
+                {
+                    "fen": game["board"].fen(),
+                    "white_time": game["white_time"],
+                    "black_time": game["black_time"],
+                },
+                to=room,
+            )
         else:
             emit("error", "Invalid move!")
     except (ValueError, chess.InvalidMoveError, chess.IllegalMoveError):

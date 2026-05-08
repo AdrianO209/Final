@@ -32,7 +32,6 @@ function ChessGame() {
   const [gameOver, setGameOver] = useState(false);
   const [opponentLeft, setOpponentLeft] = useState(false);
   const gameOverRef = useRef(false);
-  const incrementRef = useRef(0);
 
   useEffect(() => {
     if (!socket.connected) {
@@ -57,14 +56,8 @@ function ChessGame() {
       setOptionSquares({});
 
       if (!isInitialSync) {
-        const newTurn = game.current.turn();
-        const bonus = Number(incrementRef.current) || 0;
-
-        if (newTurn === "w") {
-          setBlackTime((prev) => prev + bonus);
-        } else {
-          setWhiteTime((prev) => prev + bonus);
-        }
+        if (data.white_time !== undefined) setWhiteTime(data.white_time);
+        if (data.black_time !== undefined) setBlackTime(data.black_time);
       }
 
       if (game.current.isGameOver()) {
@@ -85,7 +78,6 @@ function ChessGame() {
       setGameReady(data.ready);
       setWhiteTime(data.white_time);
       setBlackTime(data.black_time);
-      incrementRef.current = data.increment || 0;
     });
 
     socket.on("player_status", (data) => {
