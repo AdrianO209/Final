@@ -56,10 +56,11 @@ function ChessGame() {
       setOptionSquares({});
 
       const newTurn = game.current.turn();
+      const bonus = Number(incremenetRef.current) || 0;
 
       if (newTurn === "w") {
-        setBlackTime((prev) => prev + incremenetRef.current);
-      } else setWhiteTime((prev) => prev + incremenetRef.current);
+        setBlackTime((prev) => prev + bonus);
+      } else setWhiteTime((prev) => prev + bonus);
 
       if (game.current.isGameOver()) {
         setGameOver(true);
@@ -79,7 +80,7 @@ function ChessGame() {
       setGameReady(data.ready);
       setWhiteTime(data.white_time);
       setBlackTime(data.black_time);
-      incremenetRef.current = data.incremenetRef;
+      incremenetRef.current = data.incremenetRef || 0;
     });
 
     socket.on("player_status", (data) => {
