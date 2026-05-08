@@ -302,7 +302,7 @@ def handle_join(data):
             print(f"SPECTATOR Joined - User {user_id}")
 
         if game["white"] and game["black"]:
-            if db.game.staus != "full":
+            if db.game.status != "full":
                 db_game.status = "full"
                 db.session.commit()
 
@@ -327,9 +327,7 @@ def handle_join(data):
                     },
                 )
         else:
-            socketio.emit(
-                "player_status", {"ready": False, "msg": "Waiting..."}, to=room
-            )
+            emit("player_status", {"ready": False, "msg": "Waiting..."}, to=room)
 
         emit("move_update", game["board"].fen())
     except Exception as e:
