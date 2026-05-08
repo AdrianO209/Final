@@ -50,17 +50,22 @@ function ChessGame() {
 
     socket.on("move_update", (data) => {
       const newFen = typeof data === "string" ? data : data.fen;
+      const isInitialSync = typeof data === "string";
 
       game.current.load(newFen);
       setFen(newFen);
       setOptionSquares({});
 
-      const newTurn = game.current.turn();
-      const bonus = Number(incrementRef.current) || 0;
+      if (!isInitialSync) {
+        const newTurn = game.current.turn();
+        const bonus = Number(incrementRef.current) || 0;
 
-      if (newTurn === "w") {
-        setBlackTime((prev) => prev + bonus);
-      } else setWhiteTime((prev) => prev + bonus);
+        if (newTurn === "w") {
+          setBlackTime((prev) => prev + bonus);
+        } else {
+          setWhiteTime((prev) => prev + bonus);
+        }
+      }
 
       if (game.current.isGameOver()) {
         setGameOver(true);
