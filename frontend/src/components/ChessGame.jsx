@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { io } from "socket.io-client";
 import { useParams, useNavigate } from "react-router-dom";
+import ChatBox from "./ChatBox.jsx";
 
 const API_URL = "https://backend-production-5b92.up.railway.app";
 const socket = io(API_URL, { autoConnect: false });
@@ -32,6 +33,8 @@ function ChessGame() {
   const [gameOver, setGameOver] = useState(false);
   const [opponentLeft, setOpponentLeft] = useState(false);
   const gameOverRef = useRef(false);
+  const username = localStorage.getItem("name") || "Anonymous";
+
 
   useEffect(() => {
     if (!socket.connected) {
@@ -252,6 +255,8 @@ function ChessGame() {
         flexDirection: "column",
         alignItems: "center",
         mt: 4,
+        pb: 4,
+
       }}
     >
       <Paper
@@ -345,6 +350,8 @@ function ChessGame() {
           <Chessboard options={chessboardOptions} />
         </Box>
       </Box>
+      {/* Chat Box */}
+      <ChatBox socket={socket} matchID={matchID} username={username} />
     </Box>
   );
 }

@@ -421,7 +421,13 @@ def handle_disconnect():
     except Exception as e:
         print(f"Disconnect Error: {e}")
 
-
+@socketio.on("send_message")
+def handle_message(data):
+    room = str(data.get("room"))
+    message = data.get("message")
+    username = data.get("username")
+    emit("receive_message", {"username": username, "message": message}, to=room)
+    
 # --- STARTUP ---
 with app.app_context():
     db.create_all()
