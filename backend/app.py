@@ -161,6 +161,8 @@ def fetch():
                 "id": i.id,
                 "name": i.name,
                 "status": i.status,
+                "white_player_id": i.white_player_id,
+                "black_player_id": i.black_player_id,
             }
             for i in totalMatches
         ]
