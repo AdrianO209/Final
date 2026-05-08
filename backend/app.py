@@ -368,8 +368,6 @@ def handle_move(data):
                 to=room,
             )
 
-    except (ValueError, chess.InvalidMoveError, chess.IllegalMoveError):
-        emit("error", "Illegal move format!")
     except Exception as e:
         print(f"Socket Move Error: {e}")
 
