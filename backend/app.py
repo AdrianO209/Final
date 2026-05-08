@@ -327,7 +327,7 @@ def handle_join(data):
                     },
                 )
         else:
-            emit("player_status", {"ready": False, "msg": "Waiting..."}, to=room)
+            emit("player_status", {"ready": False, "msg": "Waiting..."})
 
         emit("move_update", game["board"].fen())
     except Exception as e:
