@@ -268,9 +268,7 @@ function ChessGame() {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          {!gameReady && myColor && (
-            <CircularProgress size={24} sx={{ color: "#aaa" }} />
-          )}
+          {!gameReady && <CircularProgress size={24} sx={{ color: "#aaa" }} />}
           <Box>
             <Typography variant="h6" sx={{ margin: 0 }}>
               {opponentLeft
