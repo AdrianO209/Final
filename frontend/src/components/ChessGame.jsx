@@ -255,7 +255,7 @@ function ChessGame() {
         flexDirection: "column",
         alignItems: "center",
         mt: 4,
-        pb: 4,
+
 
       }}
     >
@@ -307,51 +307,64 @@ function ChessGame() {
           Leave Match
         </Button>
       </Paper>
-      <Box sx={{ width: { xs: "90vw", sm: 500, md: 600 } }}>
-        {gameReady && (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              mb: 2,
-              px: 1,
-            }}
-          >
-            <Typography
+      
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          gap: 2,
+          alignItems: "flex-start",
+        }}
+      >
+        <Box sx={{ width: { xs: "90vw", sm: 500, md: 600 } }}>
+          {gameReady && (
+            <Box
               sx={{
-                color: game.current.turn() === "b" ? "#fff" : "#888",
-                fontWeight: "bold",
-                fontSize: "1.25rem",
-                backgroundColor: "#312e2b",
-                px: 2.5,
-                py: 0.75,
-                borderRadius: 1,
+                display: "flex",
+                justifyContent: "space-between",
+                mb: 2,
+                px: 1,
               }}
             >
-              ⚫{formatTime(blackTime)}
-            </Typography>
-            <Typography
-              sx={{
-                color: game.current.turn() === "w" ? "#fff" : "#888",
-                fontWeight: "bold",
-                fontSize: "1.25rem",
-                backgroundColor: "#312e2b",
-                px: 2.5,
-                py: 0.75,
-                borderRadius: 1,
-              }}
-            >
-              ⚪{formatTime(whiteTime)}
-            </Typography>
-          </Box>
-        )}
+              <Typography
+                sx={{
+                  color: game.current.turn() === "b" ? "#fff" : "#888",
+                  fontWeight: "bold",
+                  fontSize: "1.25rem",
+                  backgroundColor: "#312e2b",
+                  px: 2.5,
+                  py: 0.75,
+                  borderRadius: 1,
+                }}
+              >
+                ⚫{formatTime(blackTime)}
+              </Typography>
+              <Typography
+                sx={{
+                  color: game.current.turn() === "w" ? "#fff" : "#888",
+                  fontWeight: "bold",
+                  fontSize: "1.25rem",
+                  backgroundColor: "#312e2b",
+                  px: 2.5,
+                  py: 0.75,
+                  borderRadius: 1,
+                }}
+              >
+                ⚪{formatTime(whiteTime)}
+              </Typography>
+            </Box>
+          )}
 
-        <Box sx={{ fontSize: 0 }}>
-          <Chessboard options={chessboardOptions} />
+          <Box sx={{ fontSize: 0 }}>
+            <Chessboard options={chessboardOptions} />
+          </Box>
+        </Box>
+
+        {/* Chat on the right */}
+        <Box sx={{ flex: 1, minWidth: 220, alignSelf: "stretch" }}>
+          <ChatBox socket={socket} matchID={matchID} username={username}/>
         </Box>
       </Box>
-      {/* Chat Box */}
-      <ChatBox socket={socket} matchID={matchID} username={username} />
     </Box>
   );
 }
