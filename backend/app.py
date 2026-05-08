@@ -302,7 +302,7 @@ def handle_join(data):
             print(f"SPECTATOR Joined - User {user_id}")
 
         if game["white"] and game["black"]:
-            if db.game.status != "full":
+            if db_game.status != "full":
                 db_game.status = "full"
                 db.session.commit()
 
