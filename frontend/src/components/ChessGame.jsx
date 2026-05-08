@@ -254,9 +254,8 @@ function ChessGame() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        mt: 4,
-
-
+        mt: 1,
+        overflow: "hidden",
       }}
     >
       <Paper
@@ -316,7 +315,7 @@ function ChessGame() {
           alignItems: "flex-start",
         }}
       >
-        <Box sx={{ width: { xs: "90vw", sm: 500, md: 600 } }}>
+        <Box sx={{ width: { xs: "90vw", sm: "45vw", md: "55vw" }, maxWidth: 600 }}>
           {gameReady && (
             <Box
               sx={{
@@ -362,7 +361,7 @@ function ChessGame() {
 
         {/* Chat on the right */}
         <Box sx={{ flex: 1, minWidth: 220, alignSelf: "stretch" }}>
-          <ChatBox socket={socket} matchID={matchID} username={username}/>
+          <ChatBox socket={socket} matchID={matchID} username={username} height={gameReady ? 652 : 600} />
         </Box>
       </Box>
     </Box>
