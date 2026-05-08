@@ -277,9 +277,9 @@ function ChessGame() {
                 ? "Opponent Disconnect"
                 : !myColor
                   ? "Watching Live Match"
-                !gameReady
-                  ? "Waiting for opponent..."
-                  : status}
+                  : !gameReady
+                    ? "Waiting for opponent..."
+                    : status}
             </Typography>
             {myColor ? (
               <Typography
