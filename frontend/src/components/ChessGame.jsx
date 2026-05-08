@@ -234,11 +234,14 @@ function ChessGame() {
     boardOrientation: myColor === "b" ? "black" : "white",
     arePiecesDraggable: false,
   };
-
   const formatTime = (seconds) => {
     if (seconds == null) return "--:--";
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
+
+    const cleanSeconds = Math.round(seconds);
+
+    const m = Math.floor(cleanSeconds / 60);
+    const s = cleanSeconds % 60;
+
     return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   };
 

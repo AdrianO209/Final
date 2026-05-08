@@ -296,6 +296,9 @@ def handle_join(data):
         if game["white"] and game["black"]:
             db_game.status = "full"
             db.session.commit()
+
+            game["last_move_time"] = time.time()
+
             socketio.emit(
                 "game_ready",
                 {
@@ -305,20 +308,12 @@ def handle_join(data):
                 },
                 to=room,
             )
-            socketio.emit(
-                "player_status",
-                {"ready": True, "msg": "Both players connected successfully"},
-                to=room,
-            )
         else:
             socketio.emit(
-                "player_status",
-                {"ready": False, "msg": "Waiting for Opponent..."},
-                to=room,
+                "player_status", {"ready": False, "msg": "Waiting..."}, to=room
             )
 
         emit("move_update", game["board"].fen())
-
     except Exception as e:
         print(f"Socket Join Error: {e}")
     finally:
@@ -373,21 +368,6 @@ def handle_move(data):
                 to=room,
             )
 
-        # Move execution
-        move = chess.Move.from_uci(move_data)
-        if move in board.legal_moves:
-            board.push(move)
-            emit(
-                "move_update",
-                {
-                    "fen": game["board"].fen(),
-                    "white_time": game["white_time"],
-                    "black_time": game["black_time"],
-                },
-                to=room,
-            )
-        else:
-            emit("error", "Invalid move!")
     except (ValueError, chess.InvalidMoveError, chess.IllegalMoveError):
         emit("error", "Illegal move format!")
     except Exception as e:
