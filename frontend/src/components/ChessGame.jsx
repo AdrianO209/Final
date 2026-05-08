@@ -79,8 +79,11 @@ function ChessGame() {
     });
     socket.on("game_ready", (data) => {
       setGameReady(data.ready);
-      setWhiteTime(data.white_time);
-      setBlackTime(data.black_time);
+      setOpponentLeft(false);
+      setGameOver(false);
+      gameOverRef.current = false;
+      setWhiteTime(prev => prev === null ? data.white_time : prev);
+      setBlackTime(prev => prev === null ? data.black_time : prev);
     });
 
     socket.on("player_status", (data) => {

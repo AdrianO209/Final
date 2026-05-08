@@ -204,15 +204,10 @@ def join_match(match_id):
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
+    if str(game.white_player_id) == str(user_id) or str(game.black_player_id) == str(user_id):
+        return jsonify({"message": "Welcome back!"}), 200
     if game.status not in ["active", "waiting"]:
         return jsonify({"error": "This match is no longer active"}), 400
-    if str(game.white_player_id) == str(user_id):
-        return jsonify({"error": "You are already the White player"}), 400
-    if str(game.white_player_id) == str(user_id) or str(game.black_player_id) == str(
-        user_id
-    ):
-        return jsonify({"message": "Welcome back!"}), 200
-
     if game.black_player_id is None:
         game.black_player_id = user_id
         game.status = "waiting"
@@ -320,16 +315,18 @@ def handle_join(data):
                     to=room,
                 )
             else:
-                emit(
-                    "game_ready",
-                    {
-                        "ready": True,
-                        "white_time": game["white_time"],
-                        "black_time": game["black_time"],
-                    },
-                )
-        else:
-            emit("player_status", {"ready": False, "msg": "Waiting..."})
+                if game["white"] and game["black"]:
+                    socketio.emit(
+                        "game_ready",
+                        {
+                            "ready": True,
+                            "white_time": game["white_time"],
+                            "black_time": game["black_time"],
+                        },
+                        to=room,
+                    )
+                else:
+                    emit("player_status", {"ready": False, "msg": "Waiting..."})
 
         emit("move_update", game["board"].fen())
     except Exception as e:
