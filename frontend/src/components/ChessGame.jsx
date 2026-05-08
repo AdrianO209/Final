@@ -49,8 +49,8 @@ function ChessGame() {
     });
 
     socket.on("move_update", (data) => {
-      const newFen = typeof data === "string" ? data : data.fen;
       const isInitialSync = typeof data === "string";
+      const newFen = isInitialSync ? data : data.fen;
 
       game.current.load(newFen);
       setFen(newFen);
