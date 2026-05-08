@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import CustomTabPanel from "./CustomTabPanel.jsx";
 import { useNavigate } from "react-router-dom";
 
@@ -23,6 +24,7 @@ function Join({ activeTabIndex }) {
   const [matchList, setMatchList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -59,6 +61,18 @@ function Join({ activeTabIndex }) {
       return () => clearInterval(interval);
     }
   }, [activeTabIndex]);
+
+  useEffect(() => {
+    const fetchMe = async () => {
+      const token = localStorage.getItem("chess_token");
+      const response = await fetch(`${API_BASE_URL}/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      setCurrentUserId(String(data.id));
+    };
+    fetchMe();
+  }, []);
 
   const joinGame = async (matchID) => {
     const token = localStorage.getItem("chess_token");
@@ -137,8 +151,18 @@ function Join({ activeTabIndex }) {
                     key={current.id}
                     divider
                     secondaryAction={
-                      current.status === "active" ||
-                      current.status === "waiting" ? (
+                      String(current.white_player_id) === currentUserId ||
+                      String(current.black_player_id) === currentUserId ? (
+                        <Tooltip title="Rejoin">
+                          <IconButton
+                            sx={{ mr:2 }}
+                            color="warning"
+                            onClick={() => navigate(`/game/${current.id}`)}
+                          > 
+                            <RefreshIcon />
+                          </IconButton>
+                        </Tooltip>
+                      ) : current.status === "active" || current.status === "waiting" ? (
                         <Tooltip title="Join">
                           <IconButton
                             sx={{ mr: 2 }}
