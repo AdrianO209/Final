@@ -299,24 +299,33 @@ def handle_join(data):
             emit("assign_color", "b")
             print(f"BLACK Joined - User {user_id}, SID {request.sid}")
         else:
-            emit("error", {"msg": "You are not a player in this game"})
-            return
+            print(f"SPECTATOR Joined - User {user_id}")
 
         if game["white"] and game["black"]:
-            db_game.status = "full"
-            db.session.commit()
+            if db.game.staus != "full":
+                db_game.status = "full"
+                db.session.commit()
 
-            game["last_move_time"] = time.time()
+                game["last_move_time"] = time.time()
 
-            socketio.emit(
-                "game_ready",
-                {
-                    "ready": True,
-                    "white_time": game["white_time"],
-                    "black_time": game["black_time"],
-                },
-                to=room,
-            )
+                socketio.emit(
+                    "game_ready",
+                    {
+                        "ready": True,
+                        "white_time": game["white_time"],
+                        "black_time": game["black_time"],
+                    },
+                    to=room,
+                )
+            else:
+                emit(
+                    "game_ready",
+                    {
+                        "ready": True,
+                        "white_time": game["white_time"],
+                        "black_time": game["black_time"],
+                    },
+                )
         else:
             socketio.emit(
                 "player_status", {"ready": False, "msg": "Waiting..."}, to=room
