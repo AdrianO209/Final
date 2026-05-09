@@ -34,6 +34,7 @@ function ChessGame() {
   const [opponentLeft, setOpponentLeft] = useState(false);
   const gameOverRef = useRef(false);
   const username = localStorage.getItem("name") || "Anonymous";
+  const [showResignConfirm, setShowResignConfirm] = useState(false);
 
 
   useEffect(() => {
@@ -78,12 +79,13 @@ function ChessGame() {
       }
     });
     socket.on("game_ready", (data) => {
-      setGameReady(data.ready);
-      setOpponentLeft(false);
-      setGameOver(false);
-      gameOverRef.current = false;
-      if (data.white_time !== undefined) setWhiteTime(data.white_time);
-      if (data.black_time !== undefined) setBlackTime(data.black_time);
+    if (data.finished) return;
+    setGameReady(data.ready);
+    setOpponentLeft(false);
+    setGameOver(false);
+    gameOverRef.current = false;
+    if (data.white_time !== undefined) setWhiteTime(data.white_time);
+    if (data.black_time !== undefined) setBlackTime(data.black_time);
     });
 
     socket.on("player_status", (data) => {
@@ -242,8 +244,10 @@ function ChessGame() {
 
   const handleResign = async () => {
     if (!myColor) return;
-    if (!window.confirm("Are you sure you want to resign?")) return;
-
+    setShowResignConfirm(true);
+  };
+  const confirmResign = async () => {
+    setShowResignConfirm(false);
     const token = localStorage.getItem("chess_token");
     await fetch(`${API_URL}/resign/${matchID}`, {
       method: "POST",
@@ -332,9 +336,20 @@ function ChessGame() {
           </Box>
         </Box>
         {myColor && gameReady && !gameOver && (
-          <Button variant="outlined" color="warning" onClick={handleResign} sx={{ mr:1 }}>
-            Resign
-          </Button>
+          showResignConfirm ? (
+            <Box sx={{ display: "flex", gap: 1}}>
+              <Button variant="outlined" color="warning" onClick={confirmResign} size="small">
+                Yes, Resign
+              </Button>
+              <Button variant="outlined" onClick={() => setShowResignConfirm(false)} size="small">
+              Cancel
+              </Button>
+            </Box>
+          ) : (
+            <Button variant="outlined" color="warning" onClick={handleResign} sx={{ mr:1 }}>
+              Resign
+            </Button>
+          )
         )}
         <Button variant="outlined" color="error" onClick={handleLeaveGame}>
           Leave Match
