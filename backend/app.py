@@ -336,22 +336,21 @@ def handle_join(data):
         else:
             print(f"SPECTATOR Joined - User {user_id}")
 
-        if db_game.status == "finished":
-            emit("game_ready", {
-                "ready": False,
-                "white_time": game["white_time"],
-                "black_time": game["black_time"],
-                "finished": True,
-            })
-            emit("move_update", game["board"].fen())
-            return
-
         if game["white"] and game["black"]:
-            if db_game.status != "full":
-                is_finished = db_game.status == "finished"
+            if db_game.status == "finished":
+                socketio.emit(
+                    "game_ready",
+                    {
+                        "ready": False,
+                        "white_time": game["white_time"],
+                        "black_time": game["black_time"],
+                        "finished": True,
+                    },
+                    to=room,
+                )
+            elif db_game.status != "full":
                 db_game.status = "full"
                 db.session.commit()
-
                 game["last_move_time"] = time.time()
 
                 socketio.emit(
@@ -360,25 +359,21 @@ def handle_join(data):
                         "ready": True,
                         "white_time": game["white_time"],
                         "black_time": game["black_time"],
-                        "finished": is_finished,
+                        "finished": False,
                     },
                     to=room,
                 )
             else:
-                if game["white"] and game["black"]:
-                    socketio.emit(
-                        "game_ready",
-                        {
-                            "ready": True,
-                            "white_time": game["white_time"],
-                            "black_time": game["black_time"],
-                            "finished": db_game.status == "finished"
-                        },
-                        to=room,
-                    )
-                else:
-                    emit("player_status", {"ready": False, "msg": "Waiting..."})
-
+                socketio.emit(
+                    "game_ready",
+                    {
+                        "ready": True,
+                        "white_time": game["white_time"],
+                        "black_time": game["black_time"],
+                        "finished": False,
+                    },
+                    to=room,
+                )
         emit("move_update", game["board"].fen())
     except Exception as e:
         print(f"Socket Join Error: {e}")
