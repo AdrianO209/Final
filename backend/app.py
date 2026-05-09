@@ -475,6 +475,19 @@ def handle_disconnect():
     except Exception as e:
         print(f"Disconnect Error: {e}")
 
+@socketio.on("timeout")
+def handle_timeout(data):
+    try:
+        room = str(data.get("room"))
+        db_game = GameSession.query.get(int(room))
+        if db_game:
+            db_game.status = "checkmate"
+            db.session.commit()
+    except Exception as e:
+        print(f"Timeout Error: {e}")
+    finally:
+        db.session.remove()
+        
 @socketio.on("send_message")
 def handle_message(data):
     room = str(data.get("room"))
