@@ -457,7 +457,7 @@ def handle_disconnect():
                     game["paused"] = True
                     game["pause_time"] = time.time()
 
-                if game["white"] is None and game["black"] is None:
+                if game["white"] is None and game["black"] is None or (db_game and db_game.status == "resigned"):
                     del games[room]
                     print(f"Room {room} was empty and has been deleted.")
                     if db_game:
