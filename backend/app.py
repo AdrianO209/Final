@@ -349,6 +349,7 @@ def handle_join(data):
                         "ready": True,
                         "white_time": game["white_time"],
                         "black_time": game["black_time"],
+                        "finished": db_game.status == "finished",
                     },
                     to=room,
                 )

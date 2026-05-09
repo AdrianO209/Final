@@ -34,12 +34,23 @@ function ChessGame() {
   const [opponentLeft, setOpponentLeft] = useState(false);
   const gameOverRef = useRef(false);
   const username = localStorage.getItem("name") || "Anonymous";
+  const [myUserId, setMyUserId] = useState(null);
 
 
   useEffect(() => {
     if (!socket.connected) {
       socket.connect();
     }
+
+    const fetchMyId = async () => {
+      const token = localStorage.getItem("chess_token");
+      const response = await fetch(`${API_URL}/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      setMyUserId(String(data.id));
+    };
+    fetchMyId();
 
     const token = localStorage.getItem("chess_token");
     socket.emit("join_game", { room: String(matchID), token: token });
@@ -102,8 +113,8 @@ function ChessGame() {
       setGameOver(true);
       gameOverRef.current = true;
       clearInterval(timerRef.current);
-      setStatus(data.loser_id === String(myColor) ? "You Resigned!" : "Opponent Resigned! You Win!")
-    })
+      setStatus(String(data.loser_id) === myUserId ? "You Resigned!" : "Opponent Resigned! You Win!");
+    });
 
     return () => {
       socket.off("assign_color");
