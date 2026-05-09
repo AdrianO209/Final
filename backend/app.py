@@ -442,46 +442,61 @@ def handle_move(data):
 @socketio.on("disconnect")
 def handle_disconnect():
     try:
-        player_id = request.sid  # type: ignore
+        player_id = request.sid
 
         for room, game in list(games.items()):
-            if game["white"] == player_id or game["black"] == player_id:
-                emit(
-                    "player_status",
-                    {"ready": False, "msg": "Opponent disconnected."},
-                    to=room,
-                )
+            if game["white"] != player_id and game["black"] != player_id:
+                continue
 
+            # === QUICK & SAFE CHECK FOR FINISHED GAMES ===
+            db_game = GameSession.query.get(int(room))
+            
+            if db_game and db_game.status in ["finished", "resigned"]:
+                # Game already ended (resign, checkmate, etc.) → clean quietly
                 if game["white"] == player_id:
                     game["white"] = None
                 else:
                     game["black"] = None
 
-                elapsed = time.time() - game.get("last_move_time", time.time())
-                turn = game["board"].turn
-                if turn == chess.WHITE:
-                    game["white_time"] = max(0, game["white_time"] - elapsed)
-                else:
-                    game["black_time"] = max(0, game["black_time"] - elapsed)
-                
-                game["paused"] = True
-                game["pause_time"] = time.time()
-
                 if game["white"] is None and game["black"] is None:
                     del games[room]
-                    print(f"Room {room} was empty and has been deleted.")
+                break  # Stop here - very important
 
-                    db_game = GameSession.query.get(int(room))
-                    if db_game:
-                        db.session.delete(db_game)
-                        db.session.commit()
-                        print(f"Match {room} permanently erased from database.")
+            # === Normal active game disconnect (your original logic) ===
+            emit(
+                "player_status",
+                {"ready": False, "msg": "Opponent disconnected."},
+                to=room,
+            )
 
-                break
+            if game["white"] == player_id:
+                game["white"] = None
+            else:
+                game["black"] = None
+
+            elapsed = time.time() - game.get("last_move_time", time.time())
+            turn = game["board"].turn
+            if turn == chess.WHITE:
+                game["white_time"] = max(0, game["white_time"] - elapsed)
+            else:
+                game["black_time"] = max(0, game["black_time"] - elapsed)
+            
+            game["paused"] = True
+            game["pause_time"] = time.time()
+
+            if game["white"] is None and game["black"] is None:
+                del games[room]
+                print(f"Room {room} was empty and has been deleted.")
+
+                if db_game:
+                    db.session.delete(db_game)
+                    db.session.commit()
+                    print(f"Match {room} permanently erased from database.")
+
+            break
 
     except Exception as e:
         print(f"Disconnect Error: {e}")
-
 @socketio.on("send_message")
 def handle_message(data):
     room = str(data.get("room"))

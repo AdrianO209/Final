@@ -230,17 +230,18 @@ function ChessGame() {
 
   const handleLeaveGame = async () => {
     navigate("/dashboard");
-    const token = localStorage.getItem("chess_token");
+  const token = localStorage.getItem("chess_token");
+  if (!gameOverRef.current && !gameOver) {
     await fetch(`${API_URL}/leave/${matchID}`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     });
-    if (socket.connected) {
-      socket.disconnect();
-    }
-  };
+  }
+
+  if (socket.connected) {
+    socket.disconnect();
+  }
+};
 
   const handleResign = async () => {
     if (!myColor) return;
