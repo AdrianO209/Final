@@ -336,6 +336,16 @@ def handle_join(data):
         else:
             print(f"SPECTATOR Joined - User {user_id}")
 
+        if db_game.status == "finished":
+            emit("game_ready", {
+                "ready": False,
+                "white_time": game["white_time"],
+                "black_time": game["black_time"],
+                "finished": True,
+            })
+            emit("move_update", game["board"].fen())
+            return
+
         if game["white"] and game["black"]:
             if db_game.status != "full":
                 is_finished = db_game.status == "finished"

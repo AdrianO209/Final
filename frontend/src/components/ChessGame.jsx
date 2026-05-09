@@ -35,6 +35,7 @@ function ChessGame() {
   const gameOverRef = useRef(false);
   const username = localStorage.getItem("name") || "Anonymous";
   const [myUserId, setMyUserId] = useState(null);
+  const myUserIdRef = useRef(null);
 
 
   useEffect(() => {
@@ -48,7 +49,7 @@ function ChessGame() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await response.json();
-      setMyUserId(String(data.id));
+      myUserIdRef.current = String(data.id);
     };
     fetchMyId();
 
@@ -119,7 +120,7 @@ function ChessGame() {
       setGameOver(true);
       gameOverRef.current = true;
       clearInterval(timerRef.current);
-      setStatus(String(data.loser_id) === myUserId ? "You Resigned!" : "Opponent Resigned! You Win!");
+      setStatus(String(data.loser_id) === myUserIdRef.current ? "You Resigned!" : "Opponent Resigned! You Win!");
     });
 
     return () => {
