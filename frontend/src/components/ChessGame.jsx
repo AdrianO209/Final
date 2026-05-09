@@ -89,6 +89,12 @@ function ChessGame() {
       }
     });
     socket.on("game_ready", (data) => {
+      if (data.finished) {
+        setGameOver(true);
+        gameOverRef.current = true;
+        setStatus("Game is already finished");
+        return;
+      }
       setGameReady(data.ready);
       setOpponentLeft(false);
       setGameOver(false);
