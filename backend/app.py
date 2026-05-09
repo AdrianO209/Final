@@ -310,37 +310,17 @@ def handle_join(data):
         else:
             print(f"SPECTATOR Joined - User {user_id}")
 
-        if game["white"] and game["black"]:
-            if db_game.status != "full":
-                db_game.status = "full"
-                db.session.commit()
-
-                game["last_move_time"] = time.time()
-
-                socketio.emit(
-                    "game_ready",
-                    {
-                        "ready": True,
-                        "white_time": game["white_time"],
-                        "black_time": game["black_time"],
-                    },
-                    to=room,
-                )
-            else:
-                if game["white"] and game["black"]:
-                    socketio.emit(
-                        "game_ready",
-                        {
-                            "ready": True,
-                            "white_time": game["white_time"],
-                            "black_time": game["black_time"],
-                        },
-                        to=room,
-                    )
-                else:
-                    emit("player_status", {"ready": False, "msg": "Waiting..."})
-
+        socketio.emit(
+            "game_ready",
+            {
+                "ready": True,
+                "white_time": game["white_time"],
+                "black_time": game["black_time"],
+            },
+            to=room,
+        )
         emit("move_update", game["board"].fen())
+                    
     except Exception as e:
         print(f"Socket Join Error: {e}")
     finally:
