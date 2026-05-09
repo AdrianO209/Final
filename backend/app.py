@@ -308,7 +308,7 @@ def handle_join(data):
         if game.get("paused"):
             game["last_move_time"] = current_time
             game["paused"] = False
-        else:
+        elif db_game.status == "full":
             elapsed = current_time - game.get("last_move_time", current_time)
             turn = game["board"].turn
             if turn == chess.WHITE:
@@ -340,7 +340,7 @@ def handle_join(data):
         else:
             print(f"SPECTATOR Joined - User {user_id}")
 
-        if db_game.status == "resigned":
+        if db_game.status in ["resigned", "finished"]:
             emit("game_ready", {
                 "ready": False,
                 "white_time": game["white_time"],
@@ -413,6 +413,12 @@ def handle_move(data):
 
             board.push(move)
 
+            if board.is_game_over():
+                db_game = GameSession.query.get(int(room))
+                if db_game:
+                    db_game.status = "finished"
+                    db.session.commit()
+
             emit(
                 "move_update",
                 {
@@ -457,7 +463,7 @@ def handle_disconnect():
                     game["paused"] = True
                     game["pause_time"] = time.time()
 
-                if game["white"] is None and game["black"] is None or (db_game and db_game.status == "resigned"):
+                if game["white"] is None and game["black"] is None or (db_game and db_game.status in ["resigned", "finished"]):
                     del games[room]
                     print(f"Room {room} was empty and has been deleted.")
                     if db_game:
