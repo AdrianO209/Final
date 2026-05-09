@@ -338,6 +338,7 @@ def handle_join(data):
 
         if game["white"] and game["black"]:
             if db_game.status != "full":
+                is_finished = db_game.status == "finished"
                 db_game.status = "full"
                 db.session.commit()
 
@@ -349,7 +350,7 @@ def handle_join(data):
                         "ready": True,
                         "white_time": game["white_time"],
                         "black_time": game["black_time"],
-                        "finished": db_game.status == "finished",
+                        "finished": is_finished,
                     },
                     to=room,
                 )
@@ -361,6 +362,7 @@ def handle_join(data):
                             "ready": True,
                             "white_time": game["white_time"],
                             "black_time": game["black_time"],
+                            "finished": db_game.status == "finished"
                         },
                         to=room,
                     )
