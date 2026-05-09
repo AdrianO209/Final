@@ -206,7 +206,7 @@ def join_match(match_id):
         return jsonify({"error": "Game not found"}), 404
     if str(game.white_player_id) == str(user_id) or str(game.black_player_id) == str(user_id):
         return jsonify({"message": "Welcome back!"}), 200
-    if game.status not in ["active", "waiting"]:
+    if game.status not in ["active", "waiting", "resigned", "full"]:
         return jsonify({"error": "This match is no longer active"}), 400
     if game.black_player_id is None:
         game.black_player_id = user_id
@@ -316,8 +316,8 @@ def handle_join(data):
             else:
                 game["black_time"] = max(0, game["black_time"] - elapsed)
             game["last_move_time"] = current_time
-        user_id = None
 
+        user_id = None
         if token:
             try:
                 with app.app_context():
@@ -325,6 +325,7 @@ def handle_join(data):
                     user_id = decoded.get("sub") or decoded.get("identity")
             except Exception as e:
                 print(f"Token decode failed for room {room}: {e}")
+
         is_white = user_id and str(db_game.white_player_id) == str(user_id)
         is_black = user_id and str(db_game.black_player_id) == str(user_id)
 
@@ -340,34 +341,44 @@ def handle_join(data):
             print(f"SPECTATOR Joined - User {user_id}")
 
         if game["white"] and game["black"]:
-            if db_game.status != "full":
+            if db_game.status == "resigned":
+                socketio.emit(
+                    "game_ready",
+                    {
+                        "ready": False,
+                        "white_time": game["white_time"],
+                        "black_time": game["black_time"],
+                        "finished": True,
+                    },
+                    to=room,
+                )
+            elif db_game.status != "full":
                 db_game.status = "full"
                 db.session.commit()
-
                 game["last_move_time"] = time.time()
-
                 socketio.emit(
                     "game_ready",
                     {
                         "ready": True,
                         "white_time": game["white_time"],
                         "black_time": game["black_time"],
+                        "finished": False,
                     },
                     to=room,
                 )
             else:
-                if game["white"] and game["black"]:
-                    socketio.emit(
-                        "game_ready",
-                        {
-                            "ready": True,
-                            "white_time": game["white_time"],
-                            "black_time": game["black_time"],
-                        },
-                        to=room,
-                    )
-                else:
-                    emit("player_status", {"ready": False, "msg": "Waiting..."})
+                socketio.emit(
+                    "game_ready",
+                    {
+                        "ready": True,
+                        "white_time": game["white_time"],
+                        "black_time": game["black_time"],
+                        "finished": db_game.status == "resigned",
+                    },
+                    to=room,
+                )
+        else:
+            emit("player_status", {"ready": False, "msg": "Waiting..."})
 
         emit("move_update", game["board"].fen())
     except Exception as e:
