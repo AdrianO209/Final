@@ -82,8 +82,8 @@ function ChessGame() {
       setOpponentLeft(false);
       setGameOver(false);
       gameOverRef.current = false;
-      setWhiteTime(prev => prev === null ? data.white_time : prev);
-      setBlackTime(prev => prev === null ? data.black_time : prev);
+      if (data.white_time !== undefined) setWhiteTime(data.white_time);
+      if (data.black_time !== undefined) setBlackTime(data.black_time);
     });
 
     socket.on("player_status", (data) => {
@@ -148,7 +148,7 @@ function ChessGame() {
     }, 1000);
 
     return () => clearInterval(timerRef.current);
-  }, [gameReady]);
+  }, [gameReady, whiteTime, blackTime]);
 
   function getMoveOptions(square) {
     const moves = game.current.moves({ square, verbose: true });
