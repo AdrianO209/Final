@@ -263,7 +263,7 @@ def resign(match_id):
         if not (is_white or is_black):
             return jsonify({"error": "You are not a player in this game"}), 403
         
-        db_game.status = "finished"
+        db_game.status = "resigned"
         db.session.commit()
 
         color = request.json.get("color")
@@ -340,43 +340,31 @@ def handle_join(data):
         else:
             print(f"SPECTATOR Joined - User {user_id}")
 
+        if db_game.status == "resigned":
+            emit("game_ready", {
+                "ready": False,
+                "white_time": game["white_time"],
+                "black_time": game["black_time"],
+                "finished": True,
+            })
+            emit("move_update", game["board"].fen())
+            return
+
         if game["white"] and game["black"]:
-            if db_game.status == "resigned":
-                socketio.emit(
-                    "game_ready",
-                    {
-                        "ready": False,
-                        "white_time": game["white_time"],
-                        "black_time": game["black_time"],
-                        "finished": True,
-                    },
-                    to=room,
-                )
-            elif db_game.status != "full":
+            if db_game.status != "full":
                 db_game.status = "full"
                 db.session.commit()
                 game["last_move_time"] = time.time()
-                socketio.emit(
-                    "game_ready",
-                    {
-                        "ready": True,
-                        "white_time": game["white_time"],
-                        "black_time": game["black_time"],
-                        "finished": False,
-                    },
-                    to=room,
-                )
-            else:
-                socketio.emit(
-                    "game_ready",
-                    {
-                        "ready": True,
-                        "white_time": game["white_time"],
-                        "black_time": game["black_time"],
-                        "finished": db_game.status == "resigned",
-                    },
-                    to=room,
-                )
+            socketio.emit(
+                "game_ready",
+                {
+                    "ready": True,
+                    "white_time": game["white_time"],
+                    "black_time": game["black_time"],
+                    "finished": False,
+                },
+                to=room,
+            )
         else:
             emit("player_status", {"ready": False, "msg": "Waiting..."})
 
@@ -445,58 +433,42 @@ def handle_disconnect():
         player_id = request.sid
 
         for room, game in list(games.items()):
-            if game["white"] != player_id and game["black"] != player_id:
-                continue
+            if game["white"] == player_id or game["black"] == player_id:
+                
+                db_game = GameSession.query.get(int(room))
 
-            # === QUICK & SAFE CHECK FOR FINISHED GAMES ===
-            db_game = GameSession.query.get(int(room))
-            
-            if db_game and db_game.status in ["finished", "resigned"]:
-                # Game already ended (resign, checkmate, etc.) → clean quietly
                 if game["white"] == player_id:
                     game["white"] = None
                 else:
                     game["black"] = None
 
+                if db_game and db_game.status not in ["finished", "resigned"]:
+                    emit(
+                        "player_status",
+                        {"ready": False, "msg": "Opponent disconnected."},
+                        to=room,
+                    )
+                    elapsed = time.time() - game.get("last_move_time", time.time())
+                    turn = game["board"].turn
+                    if turn == chess.WHITE:
+                        game["white_time"] = max(0, game["white_time"] - elapsed)
+                    else:
+                        game["black_time"] = max(0, game["black_time"] - elapsed)
+                    game["paused"] = True
+                    game["pause_time"] = time.time()
+
                 if game["white"] is None and game["black"] is None:
                     del games[room]
-                break  # Stop here - very important
-
-            # === Normal active game disconnect (your original logic) ===
-            emit(
-                "player_status",
-                {"ready": False, "msg": "Opponent disconnected."},
-                to=room,
-            )
-
-            if game["white"] == player_id:
-                game["white"] = None
-            else:
-                game["black"] = None
-
-            elapsed = time.time() - game.get("last_move_time", time.time())
-            turn = game["board"].turn
-            if turn == chess.WHITE:
-                game["white_time"] = max(0, game["white_time"] - elapsed)
-            else:
-                game["black_time"] = max(0, game["black_time"] - elapsed)
-            
-            game["paused"] = True
-            game["pause_time"] = time.time()
-
-            if game["white"] is None and game["black"] is None:
-                del games[room]
-                print(f"Room {room} was empty and has been deleted.")
-
-                if db_game:
-                    db.session.delete(db_game)
-                    db.session.commit()
-                    print(f"Match {room} permanently erased from database.")
-
-            break
+                    print(f"Room {room} was empty and has been deleted.")
+                    if db_game:
+                        db.session.delete(db_game)
+                        db.session.commit()
+                        print(f"Match {room} permanently erased from database.")
+                break
 
     except Exception as e:
         print(f"Disconnect Error: {e}")
+
 @socketio.on("send_message")
 def handle_message(data):
     room = str(data.get("room"))
