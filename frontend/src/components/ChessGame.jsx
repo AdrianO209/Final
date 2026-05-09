@@ -97,6 +97,13 @@ function ChessGame() {
     socket.on("player_left", (data) => {
       setOpponentLeft(true);
     });
+    
+    socket.on("player_resigned", (data) => {
+      setGameOver(true);
+      gameOverRef.current = true;
+      clearInterval(timerRef.current);
+      setStatus(data.loser_id === String(myColor) ? "You Resigned!" : "Opponent Resigned! You Win!")
+    })
 
     return () => {
       socket.off("assign_color");
@@ -105,6 +112,7 @@ function ChessGame() {
       socket.off("player_status");
       socket.off("error");
       socket.off("player_left");
+      socket.off("player_resigned")
       if (socket.connected) {
         socket.disconnect();
       }
@@ -232,6 +240,16 @@ function ChessGame() {
     }
   };
 
+  const handleResign = async() => {
+    const token = localStorage.getItem("chess_token");
+    await fetch(`${API_URL}/resign/${matchID}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  };
+
   const chessboardOptions = {
     id: "ClickToMoveBoard",
     position: fen,
@@ -305,6 +323,11 @@ function ChessGame() {
             )}
           </Box>
         </Box>
+        {myColor && gameReady && !gameOver && (
+          <Button variant="outlined" color="warning" onClick={handleResign} sx = {{ mr: 1}}>
+            Resign
+          </Button>
+        )}
         <Button variant="outlined" color="error" onClick={handleLeaveGame}>
           Leave Match
         </Button>

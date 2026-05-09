@@ -248,6 +248,31 @@ def leave_match(match_id):
     except Exception as e:
         print(f"Leave Error: {e}")
         return jsonify({"error": "Failed to leave cleanly"}), 500
+    
+@app.route("/resign/<int:match_id>", methods=["POST"])
+@jwt_required()
+def resign(match_id):
+    try:
+        user_id = get_jwt_identity()
+        db_game = GameSession.query.get(match_id)
+
+        if not db_game:
+            return jsonify({"error": "Game not found"}), 404
+        
+        db_game.status = "finished"
+        db.session.commit()
+
+        socketio.emit(
+            "player_resigned",
+            {"loser_id": user_id},
+            to=str(match_id),
+        )
+
+        return jsonify({"msg": "Resigned successfully"}), 200
+    
+    except Exception as e:
+        print(f"Resign Error: {e}")
+        return jsonify({"error": "Failed to resign"}), 500
 
 
 # --- SOCKET.IO REAL-TIME LOGIC ---
