@@ -145,6 +145,7 @@ function ChessGame() {
             setStatus("Black wins on time!");
             setGameOver(true);
             gameOverRef.current = true;
+            socket.emit("timeout", { room: matchID });
             return 0;
           }
           return prev - 1;
@@ -156,6 +157,7 @@ function ChessGame() {
             setStatus("White wins on time!");
             setGameOver(true);
             gameOverRef.current = true;
+            socket.emit("timeout", { room: matchID });
             return 0;
           }
           return prev - 1;
