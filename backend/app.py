@@ -280,6 +280,14 @@ def handle_join(data):
         if game.get("paused"):
             game["last_move_time"] = current_time
             game["paused"] = False
+        else:
+            elapsed = current_time - game.get("last_move_time", current_time)
+            turn = game["board"].turn
+            if turn == chess.WHITE:
+                game["white_time"] = max(0, game["white_time"] - elapsed)
+            else:
+                game["black_time"] = max(0, game["black_time"] - elapsed)
+            game["last_move_time"] = current_time
         user_id = None
 
         if token:
