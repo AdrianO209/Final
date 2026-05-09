@@ -313,8 +313,8 @@ def handle_join(data):
             else:
                 game["black_time"] = max(0, game["black_time"] - elapsed)
             game["last_move_time"] = current_time
-        user_id = None
 
+        user_id = None
         if token:
             try:
                 with app.app_context():
@@ -322,8 +322,24 @@ def handle_join(data):
                     user_id = decoded.get("sub") or decoded.get("identity")
             except Exception as e:
                 print(f"Token decode failed for room {room}: {e}")
+
         is_white = user_id and str(db_game.white_player_id) == str(user_id)
         is_black = user_id and str(db_game.black_player_id) == str(user_id)
+
+        # Handle finished games immediately
+        if db_game.status == "finished":
+            if is_white:
+                emit("assign_color", "w")
+            elif is_black:
+                emit("assign_color", "b")
+            emit("game_ready", {
+                "ready": False,
+                "white_time": game["white_time"],
+                "black_time": game["black_time"],
+                "finished": True,
+            })
+            emit("move_update", game["board"].fen())
+            return
 
         if is_white:
             game["white"] = request.sid
@@ -337,22 +353,10 @@ def handle_join(data):
             print(f"SPECTATOR Joined - User {user_id}")
 
         if game["white"] and game["black"]:
-            if db_game.status == "finished":
-                socketio.emit(
-                    "game_ready",
-                    {
-                        "ready": False,
-                        "white_time": game["white_time"],
-                        "black_time": game["black_time"],
-                        "finished": True,
-                    },
-                    to=room,
-                )
-            elif db_game.status != "full":
+            if db_game.status != "full":
                 db_game.status = "full"
                 db.session.commit()
                 game["last_move_time"] = time.time()
-
                 socketio.emit(
                     "game_ready",
                     {
@@ -374,12 +378,14 @@ def handle_join(data):
                     },
                     to=room,
                 )
+        else:
+            emit("player_status", {"ready": False, "msg": "Waiting..."})
+
         emit("move_update", game["board"].fen())
     except Exception as e:
         print(f"Socket Join Error: {e}")
     finally:
         db.session.remove()
-
 
 @socketio.on("make_move")
 def handle_move(data):
