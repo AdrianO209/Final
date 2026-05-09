@@ -231,7 +231,7 @@ def leave_match(match_id):
         is_black = str(db_game.black_player_id) == user_id
 
         if is_white or is_black:
-            if db_game.status != "finished":
+            if db_game.status not in ["finished", "resigned"]:
                 db_game.status = "finished"
                 db.session.commit()
 
