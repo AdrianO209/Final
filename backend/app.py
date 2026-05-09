@@ -277,16 +277,9 @@ def handle_join(data):
         game = games[room]
         current_time = time.time()
 
-        elapsed = current_time - game.get("last_move_time", current_time)
-        turn = game["board"].turn
-
-        if turn == chess.WHITE:
-            game["white_time"] = max(0, game["white_time"] - elapsed)
-        else:
-            game["black_time"] = max(0, game["black_time"] - elapsed)
-
-        game["last_move_time"] = current_time
-
+        if game.get("paused"):
+            game["last_move_time"] = current_time
+            game["paused"] = False
         user_id = None
 
         if token:
@@ -416,6 +409,9 @@ def handle_disconnect():
                     game["white"] = None
                 else:
                     game["black"] = None
+                
+                game["paused"] = True
+                game["pause_time"] = time.time()
 
                 if game["white"] is None and game["black"] is None:
                     del games[room]
