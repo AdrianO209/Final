@@ -34,6 +34,7 @@ function ChessGame() {
   const [opponentLeft, setOpponentLeft] = useState(false);
   const gameOverRef = useRef(false);
   const username = localStorage.getItem("name") || "Anonymous";
+  const [showResignConfirm, setShowResignConfirm] = useState(false);
 
 
   useEffect(() => {
@@ -78,12 +79,19 @@ function ChessGame() {
       }
     });
     socket.on("game_ready", (data) => {
-      setGameReady(data.ready);
-      setOpponentLeft(false);
-      setGameOver(false);
-      gameOverRef.current = false;
-      if (data.white_time !== undefined) setWhiteTime(data.white_time);
-      if (data.black_time !== undefined) setBlackTime(data.black_time);
+    if (data.finished) {
+      setGameOver(true);
+      gameOverRef.current = true;
+      setGameReady(true);
+      setStatus("Game is already finished!");
+      return;
+    }
+    setGameReady(data.ready);
+    setOpponentLeft(false);
+    setGameOver(false);
+    gameOverRef.current = false;
+    if (data.white_time !== undefined) setWhiteTime(data.white_time);
+    if (data.black_time !== undefined) setBlackTime(data.black_time);
     });
 
     socket.on("player_status", (data) => {
@@ -98,6 +106,13 @@ function ChessGame() {
       setOpponentLeft(true);
     });
 
+    socket.on("player_resigned", (data) => {
+      setGameOver(true);
+      gameOverRef.current = true;
+      clearInterval(timerRef.current);
+      setStatus(data.loser_color === myColorRef.current ? "You Resigned!" : "Opponent Resigned! You Win!")
+    });
+
     return () => {
       socket.off("assign_color");
       socket.off("move_update");
@@ -105,6 +120,7 @@ function ChessGame() {
       socket.off("player_status");
       socket.off("error");
       socket.off("player_left");
+      socket.off("player_resigned");
       if (socket.connected) {
         socket.disconnect();
       }
@@ -129,6 +145,7 @@ function ChessGame() {
             setStatus("Black wins on time!");
             setGameOver(true);
             gameOverRef.current = true;
+            socket.emit("timeout", { room: matchID });
             return 0;
           }
           return prev - 1;
@@ -140,6 +157,7 @@ function ChessGame() {
             setStatus("White wins on time!");
             setGameOver(true);
             gameOverRef.current = true;
+            socket.emit("timeout", { room: matchID });
             return 0;
           }
           return prev - 1;
@@ -220,16 +238,37 @@ function ChessGame() {
 
   const handleLeaveGame = async () => {
     navigate("/dashboard");
-    const token = localStorage.getItem("chess_token");
+  const token = localStorage.getItem("chess_token");
+  if (!gameOverRef.current && !gameOver) {
     await fetch(`${API_URL}/leave/${matchID}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
+  if (socket.connected) {
+    socket.disconnect();
+  }
+};
+
+  const handleResign = async () => {
+    if (!myColor) return;
+    setShowResignConfirm(true);
+  };
+  const confirmResign = async () => {
+    setShowResignConfirm(false);
+    const token = localStorage.getItem("chess_token");
+    await fetch(`${API_URL}/resign/${matchID}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({ color: myColor }),
     });
-    if (socket.connected) {
-      socket.disconnect();
-    }
+    setGameOver(true);
+    gameOverRef.current = true;
+    clearInterval(timerRef.current);
   };
 
   const chessboardOptions = {
@@ -305,6 +344,22 @@ function ChessGame() {
             )}
           </Box>
         </Box>
+        {myColor && gameReady && !gameOver && (
+          showResignConfirm ? (
+            <Box sx={{ display: "flex", gap: 1}}>
+              <Button variant="outlined" color="warning" onClick={confirmResign} size="small">
+                Yes, Resign
+              </Button>
+              <Button variant="outlined" onClick={() => setShowResignConfirm(false)} size="small">
+              Cancel
+              </Button>
+            </Box>
+          ) : (
+            <Button variant="outlined" color="warning" onClick={handleResign} sx={{ mr:1 }}>
+              Resign
+            </Button>
+          )
+        )}
         <Button variant="outlined" color="error" onClick={handleLeaveGame}>
           Leave Match
         </Button>

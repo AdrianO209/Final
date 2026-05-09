@@ -206,7 +206,7 @@ def join_match(match_id):
         return jsonify({"error": "Game not found"}), 404
     if str(game.white_player_id) == str(user_id) or str(game.black_player_id) == str(user_id):
         return jsonify({"message": "Welcome back!"}), 200
-    if game.status not in ["active", "waiting"]:
+    if game.status not in ["active", "waiting", "resigned", "full", "checkmate"]:
         return jsonify({"error": "This match is no longer active"}), 400
     if game.black_player_id is None:
         game.black_player_id = user_id
@@ -231,7 +231,7 @@ def leave_match(match_id):
         is_black = str(db_game.black_player_id) == user_id
 
         if is_white or is_black:
-            if db_game.status != "finished":
+            if db_game.status not in ["finished", "resigned", "checkmate"]:
                 db_game.status = "finished"
                 db.session.commit()
 
@@ -248,6 +248,34 @@ def leave_match(match_id):
     except Exception as e:
         print(f"Leave Error: {e}")
         return jsonify({"error": "Failed to leave cleanly"}), 500
+    
+@app.route("/resign/<int:match_id>", methods=["POST"])
+@jwt_required()
+def resign(match_id):
+    try:
+        user_id = get_jwt_identity()
+        db_game = GameSession.query.get(match_id)
+        if not db_game:
+            return jsonify({"error": "Game not found"}), 404
+        
+        is_white = str(db_game.white_player_id) == str(user_id)
+        is_black = str(db_game.black_player_id) == str(user_id)
+        if not (is_white or is_black):
+            return jsonify({"error": "You are not a player in this game"}), 403
+        
+        db_game.status = "resigned"
+        db.session.commit()
+
+        color = request.json.get("color")
+        socketio.emit(
+            "player_resigned",
+            {"loser_color": color},
+            to=str(match_id),
+        )
+        return jsonify({"msg": "Resigned"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 
 # --- SOCKET.IO REAL-TIME LOGIC ---
@@ -280,7 +308,7 @@ def handle_join(data):
         if game.get("paused"):
             game["last_move_time"] = current_time
             game["paused"] = False
-        else:
+        elif db_game.status == "full":
             elapsed = current_time - game.get("last_move_time", current_time)
             turn = game["board"].turn
             if turn == chess.WHITE:
@@ -288,8 +316,8 @@ def handle_join(data):
             else:
                 game["black_time"] = max(0, game["black_time"] - elapsed)
             game["last_move_time"] = current_time
-        user_id = None
 
+        user_id = None
         if token:
             try:
                 with app.app_context():
@@ -297,6 +325,7 @@ def handle_join(data):
                     user_id = decoded.get("sub") or decoded.get("identity")
             except Exception as e:
                 print(f"Token decode failed for room {room}: {e}")
+
         is_white = user_id and str(db_game.white_player_id) == str(user_id)
         is_black = user_id and str(db_game.black_player_id) == str(user_id)
 
@@ -311,35 +340,33 @@ def handle_join(data):
         else:
             print(f"SPECTATOR Joined - User {user_id}")
 
+        if db_game.status in ["resigned", "checkmate"]:
+            emit("game_ready", {
+                "ready": False,
+                "white_time": game["white_time"],
+                "black_time": game["black_time"],
+                "finished": True,
+            })
+            emit("move_update", game["board"].fen())
+            return
+
         if game["white"] and game["black"]:
             if db_game.status != "full":
                 db_game.status = "full"
                 db.session.commit()
-
                 game["last_move_time"] = time.time()
-
-                socketio.emit(
-                    "game_ready",
-                    {
-                        "ready": True,
-                        "white_time": game["white_time"],
-                        "black_time": game["black_time"],
-                    },
-                    to=room,
-                )
-            else:
-                if game["white"] and game["black"]:
-                    socketio.emit(
-                        "game_ready",
-                        {
-                            "ready": True,
-                            "white_time": game["white_time"],
-                            "black_time": game["black_time"],
-                        },
-                        to=room,
-                    )
-                else:
-                    emit("player_status", {"ready": False, "msg": "Waiting..."})
+            socketio.emit(
+                "game_ready",
+                {
+                    "ready": True,
+                    "white_time": game["white_time"],
+                    "black_time": game["black_time"],
+                    "finished": False,
+                },
+                to=room,
+            )
+        else:
+            emit("player_status", {"ready": False, "msg": "Waiting..."})
 
         emit("move_update", game["board"].fen())
     except Exception as e:
@@ -386,6 +413,12 @@ def handle_move(data):
 
             board.push(move)
 
+            if board.is_game_over():
+                db_game = GameSession.query.get(int(room))
+                if db_game:
+                    db_game.status = "checkmate"
+                    db.session.commit()
+
             emit(
                 "move_update",
                 {
@@ -403,46 +436,58 @@ def handle_move(data):
 @socketio.on("disconnect")
 def handle_disconnect():
     try:
-        player_id = request.sid  # type: ignore
+        player_id = request.sid
 
         for room, game in list(games.items()):
             if game["white"] == player_id or game["black"] == player_id:
-                emit(
-                    "player_status",
-                    {"ready": False, "msg": "Opponent disconnected."},
-                    to=room,
-                )
+                
+                db_game = GameSession.query.get(int(room))
 
                 if game["white"] == player_id:
                     game["white"] = None
                 else:
                     game["black"] = None
 
-                elapsed = time.time() - game.get("last_move_time", time.time())
-                turn = game["board"].turn
-                if turn == chess.WHITE:
-                    game["white_time"] = max(0, game["white_time"] - elapsed)
-                else:
-                    game["black_time"] = max(0, game["black_time"] - elapsed)
-                
-                game["paused"] = True
-                game["pause_time"] = time.time()
+                if db_game and db_game.status not in ["finished", "resigned", "checkmate"]:
+                    emit(
+                        "player_status",
+                        {"ready": False, "msg": "Opponent disconnected."},
+                        to=room,
+                    )
+                    elapsed = time.time() - game.get("last_move_time", time.time())
+                    turn = game["board"].turn
+                    if turn == chess.WHITE:
+                        game["white_time"] = max(0, game["white_time"] - elapsed)
+                    else:
+                        game["black_time"] = max(0, game["black_time"] - elapsed)
+                    game["paused"] = True
+                    game["pause_time"] = time.time()
 
-                if game["white"] is None and game["black"] is None:
+                if game["white"] is None and game["black"] is None or (db_game and db_game.status in ["resigned", "checkmate", "finished"]):
                     del games[room]
                     print(f"Room {room} was empty and has been deleted.")
-
-                    db_game = GameSession.query.get(int(room))
                     if db_game:
                         db.session.delete(db_game)
                         db.session.commit()
                         print(f"Match {room} permanently erased from database.")
-
                 break
 
     except Exception as e:
         print(f"Disconnect Error: {e}")
 
+@socketio.on("timeout")
+def handle_timeout(data):
+    try:
+        room = str(data.get("room"))
+        db_game = GameSession.query.get(int(room))
+        if db_game:
+            db_game.status = "checkmate"
+            db.session.commit()
+    except Exception as e:
+        print(f"Timeout Error: {e}")
+    finally:
+        db.session.remove()
+        
 @socketio.on("send_message")
 def handle_message(data):
     room = str(data.get("room"))
