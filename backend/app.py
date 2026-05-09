@@ -417,6 +417,13 @@ def handle_disconnect():
                     game["white"] = None
                 else:
                     game["black"] = None
+
+                elapsed = time.time() - game.get("last_move_time", time.time())
+                turn = game["board"].turn
+                if turn == chess.WHITE:
+                    game["white_time"] = max(0, game["white_time"] - elapsed)
+                else:
+                    game["black_time"] = max(0, game["black_time"] - elapsed)
                 
                 game["paused"] = True
                 game["pause_time"] = time.time()
