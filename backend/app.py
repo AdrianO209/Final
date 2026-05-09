@@ -206,7 +206,7 @@ def join_match(match_id):
         return jsonify({"error": "Game not found"}), 404
     if str(game.white_player_id) == str(user_id) or str(game.black_player_id) == str(user_id):
         return jsonify({"message": "Welcome back!"}), 200
-    if game.status not in ["active", "waiting", "resigned", "full"]:
+    if game.status not in ["active", "waiting", "resigned", "full", "checkmate"]:
         return jsonify({"error": "This match is no longer active"}), 400
     if game.black_player_id is None:
         game.black_player_id = user_id
@@ -231,7 +231,7 @@ def leave_match(match_id):
         is_black = str(db_game.black_player_id) == user_id
 
         if is_white or is_black:
-            if db_game.status not in ["finished", "resigned"]:
+            if db_game.status not in ["finished", "resigned", "checkmate"]:
                 db_game.status = "finished"
                 db.session.commit()
 
@@ -340,7 +340,7 @@ def handle_join(data):
         else:
             print(f"SPECTATOR Joined - User {user_id}")
 
-        if db_game.status in ["resigned", "finished"]:
+        if db_game.status in ["resigned", "checkmate"]:
             emit("game_ready", {
                 "ready": False,
                 "white_time": game["white_time"],
@@ -416,7 +416,7 @@ def handle_move(data):
             if board.is_game_over():
                 db_game = GameSession.query.get(int(room))
                 if db_game:
-                    db_game.status = "finished"
+                    db_game.status = "checkmate"
                     db.session.commit()
 
             emit(
@@ -448,7 +448,7 @@ def handle_disconnect():
                 else:
                     game["black"] = None
 
-                if db_game and db_game.status not in ["finished", "resigned"]:
+                if db_game and db_game.status not in ["finished", "resigned", "checkmate"]:
                     emit(
                         "player_status",
                         {"ready": False, "msg": "Opponent disconnected."},
@@ -463,7 +463,7 @@ def handle_disconnect():
                     game["paused"] = True
                     game["pause_time"] = time.time()
 
-                if game["white"] is None and game["black"] is None or (db_game and db_game.status in ["resigned", "finished"]):
+                if game["white"] is None and game["black"] is None or (db_game and db_game.status in ["resigned", "checkmate", "finished"]):
                     del games[room]
                     print(f"Room {room} was empty and has been deleted.")
                     if db_game:
