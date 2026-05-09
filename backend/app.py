@@ -280,7 +280,7 @@ def handle_join(data):
         if game.get("paused"):
             game["last_move_time"] = current_time
             game["paused"] = False
-        else:
+        elif db_game.status == "full":
             elapsed = current_time - game.get("last_move_time", current_time)
             turn = game["board"].turn
             if turn == chess.WHITE:
