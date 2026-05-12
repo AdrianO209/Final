@@ -47,12 +47,23 @@ function ChatBox({ socket, matchID, username, height }) {
         height: height || 600,
         backgroundColor: "#312e2b",
         borderRadius: 2,
+        maxWidth: "350px",
         overflow: "hidden",
       }}
     >
       {/* Header */}
-      <Box sx={{ px: 2, py: 1, borderBottom: "1px solid rgba(255,255,255,0.1)", flexShrink: 0 }}>
-        <Typography variant="subtitle2" sx={{ color: "#aaa", fontWeight: "bold" }}>
+      <Box
+        sx={{
+          px: 2,
+          py: 1,
+          borderBottom: "1px solid rgba(255,255,255,0.1)",
+          flexShrink: 0,
+        }}
+      >
+        <Typography
+          variant="subtitle2"
+          sx={{ color: "#aaa", fontWeight: "bold" }}
+        >
           Match Chat
         </Typography>
       </Box>
@@ -90,20 +101,36 @@ function ChatBox({ socket, matchID, username, height }) {
                 alignItems: isMe ? "flex-end" : "flex-start",
               }}
             >
-              <Typography variant="caption" sx={{ color: "#777", mb: 0.2, fontSize: "0.65rem" }}>
+              <Typography
+                variant="caption"
+                sx={{ color: "#777", mb: 0.2, fontSize: "0.65rem" }}
+              >
                 {msg.username}
               </Typography>
               <Box
                 sx={{
-                  backgroundColor: isMe ? "#00A8FF22" : "rgba(255,255,255,0.07)",
-                  border: isMe ? "1px solid #00A8FF44" : "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: isMe ? "10px 10px 2px 10px" : "10px 10px 10px 2px",
+                  backgroundColor: isMe
+                    ? "#00A8FF22"
+                    : "rgba(255,255,255,0.07)",
+                  border: isMe
+                    ? "1px solid #00A8FF44"
+                    : "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: isMe
+                    ? "10px 10px 2px 10px"
+                    : "10px 10px 10px 2px",
                   px: 1.2,
                   py: 0.6,
                   maxWidth: "90%",
                 }}
               >
-                <Typography variant="body2" sx={{ color: "#DEE3E6", wordBreak: "break-word", fontSize: "0.8rem" }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "#DEE3E6",
+                    wordBreak: "break-word",
+                    fontSize: "0.8rem",
+                  }}
+                >
                   {msg.message}
                 </Typography>
               </Box>
@@ -161,4 +188,3 @@ function ChatBox({ socket, matchID, username, height }) {
 }
 
 export default ChatBox;
-
